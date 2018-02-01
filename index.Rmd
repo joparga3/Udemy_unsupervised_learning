@@ -1,0 +1,624 @@
+---
+title: "Unsupervised Learning"
+author: "Jose Parreno Garcia"
+date: "January 2018"
+output: 
+  html_document:
+    toc: true # table of content true
+    depth: 6  # upto three depths of headings (specified by #, ##, ###, ####)
+    number_sections: true  ## if you want number sections at each table header
+    #theme: spacelab  # many options for theme, this one is my favorite.
+    #highlight: tango  # specifies the syntax highlighting style
+    keep_md: true
+---
+<style>
+body {
+text-align: justify}
+
+</style>
+
+<br>
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 250)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source_path = getwd()
+```
+
+```{r results='hide', message=FALSE, warning=FALSE}
+library(knitr)
+```
+
+In the previous sections we covered regression, classification and some extra advanced algorithms to tackle both of the above. All of these fall under the category of supervised learning, where you have a known response variable to predict. In unsupervised learning a response variable is not needed, and the idea is to present algorithms that will discover patterns only giving the features of the dataset, without a specific goal to classify. In this section we will cover:
+
+* Dimensionality reduction with principal components
+* Clustering with Kmeans and principal components
+* Clustering tendency and optimum number of clusters
+* Hierarchical clustering
+* Clustering with affinity propagation
+* Recommendation engine
+
+<br>
+
+# Dimensionality reduction with principal components
+
+We are going to look at:
+
+* How PCA works and interpret PCA
+* Biplot
+* Implementation in R
+
+## How PCA works and interpret PCA
+
+As a rule of thumb, the total information of a dataset is defined by the variability it contained. A very simple example is that, if you only have 1 feature then you will probably have less variability in the information than if you have 10 features. Does that apply the same if we had 1000 features? Generally, by adding more features, we dont necessarily gain more variability, and this variability tends to saturate. The typical examples is correlation. When you have many many features in the dataset, you will probably have some that are correlated with each other, and therefore, using these pairs isn't going to yield much more value than if you only used one of those features. The idea of PCA is trying to explain the variability of the data in fewer variables, in other words, grouping together variables to form another simplified variable called Principal Components.
+
+Lets check a first example to the Boston dataset.
+
+* We use the prcomp function and scale = TRUE
+* pca_out shows the loadings used to calculate the principal components. Loadings are like $\beta$ coefficients that are multiplied with each feature to compute the principal component values
+* boston_pc contains the actual principal components
+* boston_pc has 14 PC, being PC1 the one that explains the maximum variability -> you can see this in the summary(pca_out)
+* Summary(pca_out) shows the cummulative variance of the principal components, going from 0.4674 for PC1 up to 1.00 for PC14. As you can see, the more PC14 you add, the less additional gain in variability you will have.
+
+```{r fig.width=7, fig.height=7}
+# Load the data
+data(Boston, package = "MASS")
+
+# Calculate a simple PCA
+pca_out = prcomp(Boston, scale. = T)
+pca_out
+
+# Show actual principal components
+boston_pc = pca_out$x
+head(boston_pc)
+
+# Summary of the PC
+summary(pca_out)
+```
+
+## Biplot
+
+This is the graphical representation of the information shown in the summary, where the x-axis represents the principal components:
+
+```{r fig.width=7, fig.height=7}
+plot(pca_out)
+```
+
+The principal components can also help visualise how the features, as well as the observations are related:
+
+* Each number is a row in the dataset
+* The red lines are the columns
+* The points situated together are more similar
+* The columns that are closer to each other are more correlated 
+* We will see how to capture those numbers/lines that are similar in the next section.
+
+```{r fig.width=7, fig.height=7}
+par(mar=c(4,4,2,2))
+biplot(pca_out, cex = 0.5, cex.axis = 0.5)
+```
+
+<br>
+
+# Clustering with Kmeans and principal components
+
+PCA helped us identify those components that explain variability in the data, and would help us select groups of variables that would be most useful for information gain. Kmeans is used to identify classes within the data. We will cover:
+
+* How kmeans works
+* Implementation
+
+and visualize the groupings
+
+* How to cluster with principal components
+
+## How kmeans works
+
+Here the steps for the Kmeans algorithm:
+
+* Decide the number of clusters in your data (k) and then pick randomnly centers of those clusters
+* Once we have the centers, calculate using a distance metric (lets say the Euclidean distance), the distance between each point and the different centers.
+* When we have those distances, the points will grouped with it's closest center location.
+* We then recalculate the center of the group with the points we have grouped together, and we will be back to the step of calculating the nearest center.
+* This iteration process stops when the points are not being reassigned to any other different grouping or the centers keep at the same location
+* SOMETHING TO BE CAREFUL WITH! The final allocation of clusters can differ depending on the initialization of the random clusters. Therefore, it is always a good idea to perform kmeans a number of times and then take, for each point, the majority class that all kmean runs assigned it to.
+
+```{r echo=FALSE, fig.width=3, fig.height=3}
+include_graphics(paste0(source_path,"/images/1.PNG"))
+```
+
+## Implement and visualize the groupings
+
+Kmeans on iris data:
+
+* We want 3 clusters
+* You can see that all points are allocated to those 3 clusters
+
+```{r fig.width=7, fig.height=7}
+library(cluster)
+set.seed(100)
+
+# We exclude the species column because it doesnt represent numeric data and ask for kmeans to calculate 3 clusters
+k_obj = kmeans(iris[,-5],3)
+k_obj
+```
+
+## How to cluster with principal components
+
+Since the iris dataset has more than 2 variables, lets see if we can use this as a simple example of clustering with principal components. We will also try to plot the components of PCA1 and PCA2:
+
+* First we calculate principal components
+* As you can see from the summary, the first 2 components pretty much offer all the variability we will get from the data.
+* pcas shows how we predict, for each record, the classes using the different PCs. We would expect PC1 and PC2 to predict with better results than PC3 and PC4. To check this we can plot the results
+* In the plot, you can see there is a distinct separation between the setosa class and the other 2, however, versicolor and virginica seems to fall in the same group. This is quite not satisfactory. Probably, this might be because, with the data we used, there is no distinct separation between these 2 groups.
+
+```{r fig.width=7, fig.height=7}
+
+# Calculate principal components
+pcmod = prcomp(iris[,-5], scale = T)
+summary(pcmod)
+
+# We use the information from the PC to predict with them the classes of the whole data
+pcas = predict(pcmod)
+head(pcas)
+
+# Given that we are interested in PC1 and PC2, we plot the results and the k-clusters
+plot(pcas[,1],pcas[,2], col = k_obj$cluster)
+text(pcas[,1],pcas[,2], iris$Species, cex = 0.5)
+```
+
+## Clustering with kmeans the PCAs rather than original data
+
+How can we rectifiy this? A possible solution is to cluster into those 3 groups based on the principal components of iris rather than the original data.
+
+* As you can see from the plot, clustering based on the PCA seemed to have done the job!
+* The only downside, is that we have gone through a process of MANUALLY providing the number of clusters to kmeans, therefore, needing an understanding of the data beforehand. The next section will try to cover how to extract the optimal number of clusters, when there is little knowledge of the data
+
+```{r fig.width=7, fig.height=7}
+# PCAs
+pcmod = prcomp(iris[,-5], scale = T)
+pcas = predict(pcmod)
+
+# Cluster
+k_pca = kmeans(pcas, 3)
+
+# Plot
+plot(pcas[,1], pcas[,2], col = k_pca$cluster)
+text(pcas[,1], pcas[,2], iris$Species, cex = 0.5)
+
+# Table
+table(k_pca$cluster, iris$Species)
+```
+
+<br>
+
+# Clustering tendency and optimum number of clusters
+
+As said just above, sometimes in real world applications, we might not know how many clusters we need or want to segment our data, so it can be helpful if we can do this automatically. We will see:
+
+* Clustering tendency
+* How to visualise it
+* Finding optimum number of clusters
+
+## Clustering tendency
+
+In order to measure clustering tendency, we can look at basing this on **Hopkins Statistic**, which measures the probability that a given dataset is generated from random data points. So, the lower the Hopskings statistic, the lower the chance that the observations are spread uniformly.
+
+```{r echo=FALSE, fig.width=3, fig.height=3}
+include_graphics(paste0(source_path,"/images/2.PNG"))
+```
+
+Lets compute the Hopkins statistic for the iris dataset. As you can see below, the Hopkins statistic is ~18%, so we could say that the data points are not random.
+
+```{r fig.width=7, fig.height=7}
+library(clustertend)
+hopkins(iris[, -5], n = (nrow(iris)-1))
+
+```
+
+Lets visualize the clustering tendency with a diss-plot and a random matrix of generated numbers. Given that we created random numbers, we expect no patterns to be created, and the dissplot shows this. Doing the same for the iris dataset, the dissplot shows clearly, 2 distinct groups. It also seems like, within the big groups, there are some different shades of grey indicating smaller subgroups within the same big group.
+
+```{r fig.width=7, fig.height=7}
+library(seriation)
+
+# Random matrix and plot
+set.seed(100)
+rand_mat = matrix(runif(1000), nrow = 100)
+dissplot(dist(rand_mat), main = "Clustering Tendency: dissplot")
+
+# Iris plot -> we pass the distance metric matrix to the dissplot function
+df_dist = dist(iris[,-5])
+dissplot(df_dist, main = "Clustering Tendency: dissplot")
+
+```
+
+## Selecting the optimum number of clusters
+
+To do this we will use the **Silhouette Width**. Silhouette width can be used to measure how well separated the clusters are. In general, the more the separation the better the clustering, but this principle might not always be relevant as there could be groups that are structurally similar, so you should always apply a bit of common sense to this analysis.
+
+```{r echo=FALSE, fig.width=3, fig.height=3}
+include_graphics(paste0(source_path,"/images/3.PNG"))
+```
+
+```{r fig.width=7, fig.height=7}
+# Loading the data
+data(ruspini, package = "cluster")
+x = ruspini
+
+# Hopkins statistic 
+hopkins(ruspini, n = nrow(ruspini)-1)
+
+# Dissplot -> shows possible 4 clusters
+dissplot(dist(ruspini))
+
+# Initialize output of silhouette width
+avg_sil_wid = numeric(nrow(x)/2)
+
+# Run kmeans with different values and compute the silhouette width. The k with highest silhouette width, is likely to be the best
+for(nclus in 2:(nrow(x)/2)){
+  set.seed(100) # for repeatability
+  kout = kmeans(x, nclus) # run kmeans with different number of clusters
+  ss = silhouette(kout$cluster, dist(x)) # create a Silhouette plot
+  avg_sil_wid[nclus] = mean(ss[, 3]) # saving the results
+}
+
+opt_cluster = which.max(avg_sil_wid)
+opt_cluster
+
+# Let plot this.
+par(mar = c(5,2,3,1))
+plot(1:(nrow(x)/2)
+     , avg_sil_wid
+     , type = "b"
+     , pch = 19
+     , frame = T
+     , xlab = "Number of clusters k"
+     , ylab = "AvgSilWid"
+     , main = "Optimal clusters - yaxis = average silhouette width")
+points(x = opt_cluster
+       , y = max(avg_sil_wid)
+       , col = "red"
+       , pch = 21
+       , cex = 3)
+abline(v = which.max(avg_sil_wid), lty = 2)
+
+# Plotting points in a chart for the best selected cluster
+set.seed(100)
+kout = kmeans(x, 4)
+plot(ruspini, col = kout$cluster)
+
+```
+
+<br>
+
+# Hierarchical clustering
+
+Clustering can also be computed and visualized as a hierarchy as well. We will see:
+
+* How hierarchical clustering works
+* Dendograms
+
+## How hierarchical clustering works
+
+Broadly, there are 2 type of hierarchical clustering:
+
+* Agglomerative: (bottom-up) Starting with each ite in its own cluster, find the best pair to merge into a new cluster and repeat until all clusters are fused together
+* Divise: (top-down) Starting with all the data in a single cluster, consider every possible way to divide the cluster into 2. Choose the best division and recursiely operated on both sides.
+* Both approaches are based on calculating the similarity between clusters based on distances. The way distances are computed could be based on links:
+
+```{r echo=FALSE, fig.width=3, fig.height=3}
+include_graphics(paste0(source_path,"/images/4.PNG"))
+include_graphics(paste0(source_path,"/images/5.PNG"))
+include_graphics(paste0(source_path,"/images/6.PNG"))
+```
+
+## Implementation in R with seeds dataset
+
+Lets use the seeds dataset from the UCI machine learning repo. In order to perform hierarchical clustering, we need to compute the distance matrix and then pass it to the **hclust** function.
+
+```{r fig.width=7, fig.height=7}
+# Load data
+data = read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/00236/seeds_dataset.txt", header = F, fill = T)
+colnames(data) = c("area","perimeter","compactness","length_of_kernel","width_of_kernel","asymmetry_coefficient","length_of_kernel_groove","type")
+
+# Distance matrix
+dist_mat = dist(data[,-8])
+
+# Hierarchical clustering
+h = hclust(dist_mat)
+h
+
+# Plotting hierarchical clustering
+plot(h, cex = 0.75, labels = data$type)
+
+# Adding 3 clustered rectangles with different colours
+rect.hclust(h, k = 3, border = 2:4)
+
+# After having creating the clustering, assign each observation to its cluster
+pred = cutree(h, k = 3)
+pred
+```
+
+## Implementation in R with iris dataset
+
+```{r fig.width=7, fig.height=7}
+# Distance matrix
+dist_mat = dist(iris[,-5])
+
+# Hierarchical clustering
+h = hclust(dist_mat, method = "ward.D")
+h
+
+# Plotting hierarchical clustering
+plot(h)
+
+# Adding 3 clustered rectangles with different colours
+rect.hclust(h, k = 3, border = 2:4)
+
+# After having creating the clustering, assign each observation to its cluster
+pred = cutree(h, k = 3)
+pred
+table(pred, iris$Species)
+```
+
+# Clustering with affinity propagation
+
+An important difference between k-mean and affinity propagation is that in kmeans we start with a predefined number of clusters and randomnly initially choose the centers, running this multiple times to define the groupings. In affinity propagation every point is a potential center, also called examplers. The points kind of send messaged to each other and align themselves creating local clusters. This situation of sending messages continues, because points dont want the responsibility of being the exampler, so they look for others to share this, creating more stable and bigger clusters.
+
+## Implementation in R with seeds dataset
+
+```{r fig.width=7, fig.height=7}
+library(apcluster)
+
+# Read data
+data = read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/00236/seeds_dataset.txt", header = F, fill = T)
+
+colnames(data) = c("area","perimeter","compactness","length_of_kernel","width_of_kernel","asymmetry_coefficient","length_of_kernel_groove","type")
+
+head(data)
+```
+
+The apcluster function takes a similarity matrix as the main input, so we need to first calculate this. There are multiple options you could use to compute this:
+
+* Negative similarity matrix --> negDistMat(data[, -8], r = 2)
+* Exponential similarity matrix --> expSimMat(data[, -8], r = 2, w = 1, method = "euclidean")
+* Linear similarity matrix --> linSimMat(data[, 8], w = 1, method = "euclidean")
+* Correlation pairwise similarity matrix --> corSimMat(data[, -8], r = 1, signed = TRUE)
+
+```{r fig.width=7, fig.height=7}
+# Similarity matrix -> negative distance matrix: it computes the negative similarities of all 210 observations.
+# The "r" argument computes the power of the computed distances (in this square distances).
+neg_sim_mat = negDistMat(data[, -8], r = 2)
+
+# Compute the clusters
+clus = apcluster(neg_sim_mat)
+cl = clus@clusters # get the clusters
+xmplrs = clus@exemplars # get the exemplars
+
+# The dataset shows that we have 11 clusters! The only thing is that we need to convert clusters and exemplars into a "consumable" format.
+clus
+```
+
+```{r fig.width=7, fig.height=7}
+# Getting results into a dataframe --> basically we want to attach to the original dataset the corresponding clusters we just computed
+
+tidy_clus = function(cl){
+  
+  # Assign names
+  names(cl) = paste0("cl", 1:length(cl))
+  
+  # Function to get the observation and cluster number in a dataframe
+  getCl = function(x){
+    data.frame(id = cl[[x]], cluster = rep(x, length(cl[[x]])))
+  }
+  
+  # Get the observation and cluster number
+  groups_list = lapply(names(cl), getCl)
+  groups_df = Reduce(rbind, groups_list)
+  groups = groups_df[order(groups_df$id),]
+  print(groups)
+}
+
+groups = tidy_clus(cl)
+
+# Attaching to original dataset
+data_x = cbind(data, groups)
+head(data_x)
+```
+
+Let's check some of the results. Clearly, we have more clusters than seed types!!!! That is actually fine, we can keep this as it is if we wanted to, but we could also merge some of the clusters together.
+
+```{r fig.width=7, fig.height=7}
+# More clusters than types
+t1 = table(data_x$type, data_x$cluster)
+t1
+
+# Aggregating clusters --> for example, cl1, cl2, cl3 seem to have the vast majority of the type = 1.
+# Possible grouping
+clus_agg = aggExCluster(s = neg_sim_mat, x = clus)
+plot(clus_agg)
+
+# Specify number of clusters
+clus_agg_4 = cutree(clus_agg, k = 3)
+clus_agg_4
+
+groups2 = tidy_clus(cl = clus_agg_4@clusters)
+data_xx = cbind(data, groups2)
+
+# Checking the table
+t2 = table(data_xx$type, data_xx$cluster)
+t2
+
+```
+
+## PCA and clustering with affinity propagation
+
+```{r fig.width=7, fig.height=7}
+data(iris)
+
+# Get PCA
+pca_iris_mod = princomp(iris[, -5])
+screeplot(pca_iris_mod, type = "lines")
+pca_iris = predict(pca_iris_mod)
+head(pca_iris)
+
+# run AP clusters for predefined k clusters
+iris_clus = apclusterK(negDistMat(r = 2), pca_iris[,1:2], K = 3, prc = 0)
+cl = iris_clus@clusters
+xmplrs = iris_clus@exemplars
+
+# Tidy clusters and append to iris dataset
+grps = tidy_clus(cl)
+iris_x = cbind(iris, grps)
+iris_x$species_abbr = abbreviate(iris_x$Species, 1)
+head(iris_x)
+
+# Plot
+# - Colour of the point represents the predicted class
+# - Text represents the actual class
+# - There are some mismatches
+plot(pca_iris[, 1:2], col = iris_x$cluster, pch = "*", main = "Iris - AP Cluster")
+points(pca_iris[xmplrs, 1], pca_iris[xmplrs, 2], col = iris_x[xmplrs, "cluster"], cex = 1.5)
+text(pca_iris[, 1], pca_iris[, 2]-0.1, labels = iris_x$species_abbr, cex = 0.5
+     , col = as.numeric(as.factor(iris_x$Species)))
+```
+
+# Recommendation engines
+
+We will briefly look at:
+
+* Inputs to recommendation algorithms and different approaches
+* How to find similar customers
+* How to find similar products
+
+## Inputs to recommendation algorithms and different approaches
+
+Typical inputs to products can take multiple forms, for example, opinions from users, some sort of action, etc. As an example, check the image below.
+
+```{r echo=FALSE, fig.width=3, fig.height=3}
+include_graphics(paste0(source_path,"/images/7.PNG"))
+```
+
+If you see the image above, the matrix shows how could we use the rating information for recommendations:
+
+* We could try to cluster users that seem to buy and like the same type of products, and the recommend the ones that they haven't already bought and also seem to be popular within that cluster. This is called **User Based Collaborative Filtering (UBCF)**. For example, if all my friends are like me and they have watched a movie I haven't, they would probably recommend me watching it.
+* We could try to cluster items. This is called **Item Based Collaborative Filtering (IBCF)**. 
+* We can also recommend based purely on popularity.
+* Or re-recommend
+* Or by assocation rules to see if there are products that are bought often together. For example, hot dog buns might always be bought together with mustard or ketchup.
+* Or by random recommendations
+* Or ALS -> Latenten Factors
+* Or by SVD approximiation with column mean imputation
+
+## User collaborative filtering
+
+```{r echo=FALSE, fig.width=3, fig.height=3}
+include_graphics(paste0(source_path,"/images/8.PNG"))
+```
+
+```{r fig.width=7, fig.height=7}
+# Downloading the data
+ratingsDF = read.csv("https://raw.githubusercontent.com/selva86/datasets/master/movie_ratings.csv")
+
+# Create a matrix with the data:
+# ROWS -->  USERS
+# COLUMNS --> FILMS
+# ELEMENTS --> RATINGS (1 to 5)
+ratingsMat = as.matrix(ratingsDF)
+ratingsMat[1:5,1:5]
+
+# Recommender package
+library(recommenderlab)
+
+# The recommenderlab functions (some of them), work with a special matrix format of class "realRatingsMatrix"
+ratings = as(ratingsMat, "realRatingMatrix")
+class(ratings)
+
+# Calculate user similarity with the first 10 users
+usr_sim = recommenderlab::similarity(ratings[1:10, ]
+                                     , method = "cosine"
+                                     , which = "users")
+usr_sim[is.na(usr_sim)] = 0
+usr_sim = round(usr_sim, 2)
+
+# Visualise the users with a dendogram
+plot(hclust(usr_sim))
+
+```
+
+## Item collaborative filtering
+
+```{r fig.width=7, fig.height=7}
+# Find similar items (first 15 items)
+item_sim = recommenderlab::similarity(ratings[, 1:15]
+                                      , method = "cosine"
+                                      , which = "items")
+item_sim[is.na(item_sim)] = 0
+item_sim = round(item_sim, 2)
+
+# Plot with dendogram
+plot(hclust(item_sim))
+```
+
+## Building a recommendation system
+
+Lets start understanding what available methods have we got in the recommenderlabs package if we are dealing with numbers
+
+```{r fig.width=7, fig.height=7}
+# Find similar items (first 15 items)
+recommender_models = recommenderRegistry$get_entries(dataType = "realRatingMatrix")
+names(recommender_models)
+
+# Out of the 9 models shown, we want to use the UBCF method. Let's check default parameter it uses
+recommender_models$UBCF_realRatingMatrix
+```
+
+```{r fig.width=7, fig.height=7}
+# Split the data into train/test samples
+set.seed(100)
+
+train_rows = sample(1:nrow(ratings), size = 0.9*nrow(ratings), replace = F)
+ratings_train = ratings[train_rows,]
+ratings_test = ratings[-train_rows,]
+
+# Build the UBCF model
+rec_model = Recommender(data = ratings_train, method = "UBCF")
+rec_model
+getModel(rec_model)
+
+# Recommend movies to users in test data
+n_reco = 5 # lets get 5 recommendations for each user
+recommendations = predict(object = rec_model, newdata = ratings_test, n = n_reco)
+recommendations
+recommendations@ratings
+recommendations@items
+recommendations@itemLabels
+
+# Recommenadations clean
+reco_out = as(recommendations, "list")
+reco_out
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

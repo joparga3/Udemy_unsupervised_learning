@@ -1,0 +1,2495 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Jose Parreno Garcia" />
+
+
+<title>Unsupervised Learning</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Unsupervised learning</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Unsupervised learning</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Unsupervised Learning</h1>
+<h4 class="author"><em>Jose Parreno Garcia</em></h4>
+<h4 class="date"><em>January 2018</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#dimensionality-reduction-with-principal-components"><span class="toc-section-number">1</span> Dimensionality reduction with principal components</a><ul>
+<li><a href="#how-pca-works-and-interpret-pca"><span class="toc-section-number">1.1</span> How PCA works and interpret PCA</a></li>
+<li><a href="#biplot"><span class="toc-section-number">1.2</span> Biplot</a></li>
+</ul></li>
+<li><a href="#clustering-with-kmeans-and-principal-components"><span class="toc-section-number">2</span> Clustering with Kmeans and principal components</a><ul>
+<li><a href="#how-kmeans-works"><span class="toc-section-number">2.1</span> How kmeans works</a></li>
+<li><a href="#implement-and-visualize-the-groupings"><span class="toc-section-number">2.2</span> Implement and visualize the groupings</a></li>
+<li><a href="#how-to-cluster-with-principal-components"><span class="toc-section-number">2.3</span> How to cluster with principal components</a></li>
+<li><a href="#clustering-with-kmeans-the-pcas-rather-than-original-data"><span class="toc-section-number">2.4</span> Clustering with kmeans the PCAs rather than original data</a></li>
+</ul></li>
+<li><a href="#clustering-tendency-and-optimum-number-of-clusters"><span class="toc-section-number">3</span> Clustering tendency and optimum number of clusters</a><ul>
+<li><a href="#clustering-tendency"><span class="toc-section-number">3.1</span> Clustering tendency</a></li>
+<li><a href="#selecting-the-optimum-number-of-clusters"><span class="toc-section-number">3.2</span> Selecting the optimum number of clusters</a></li>
+</ul></li>
+<li><a href="#hierarchical-clustering"><span class="toc-section-number">4</span> Hierarchical clustering</a><ul>
+<li><a href="#how-hierarchical-clustering-works"><span class="toc-section-number">4.1</span> How hierarchical clustering works</a></li>
+<li><a href="#implementation-in-r-with-seeds-dataset"><span class="toc-section-number">4.2</span> Implementation in R with seeds dataset</a></li>
+<li><a href="#implementation-in-r-with-iris-dataset"><span class="toc-section-number">4.3</span> Implementation in R with iris dataset</a></li>
+</ul></li>
+<li><a href="#clustering-with-affinity-propagation"><span class="toc-section-number">5</span> Clustering with affinity propagation</a><ul>
+<li><a href="#implementation-in-r-with-seeds-dataset-1"><span class="toc-section-number">5.1</span> Implementation in R with seeds dataset</a></li>
+<li><a href="#pca-and-clustering-with-affinity-propagation"><span class="toc-section-number">5.2</span> PCA and clustering with affinity propagation</a></li>
+</ul></li>
+<li><a href="#recommendation-engines"><span class="toc-section-number">6</span> Recommendation engines</a><ul>
+<li><a href="#inputs-to-recommendation-algorithms-and-different-approaches"><span class="toc-section-number">6.1</span> Inputs to recommendation algorithms and different approaches</a></li>
+<li><a href="#user-collaborative-filtering"><span class="toc-section-number">6.2</span> User collaborative filtering</a></li>
+<li><a href="#item-collaborative-filtering"><span class="toc-section-number">6.3</span> Item collaborative filtering</a></li>
+<li><a href="#building-a-recommendation-system"><span class="toc-section-number">6.4</span> Building a recommendation system</a></li>
+</ul></li>
+</ul>
+</div>
+
+<style>
+body {
+text-align: justify}
+
+</style>
+<p><br></p>
+<pre class="r"><code>library(knitr)</code></pre>
+<p>In the previous sections we covered regression, classification and some extra advanced algorithms to tackle both of the above. All of these fall under the category of supervised learning, where you have a known response variable to predict. In unsupervised learning a response variable is not needed, and the idea is to present algorithms that will discover patterns only giving the features of the dataset, without a specific goal to classify. In this section we will cover:</p>
+<ul>
+<li>Dimensionality reduction with principal components</li>
+<li>Clustering with Kmeans and principal components</li>
+<li>Clustering tendency and optimum number of clusters</li>
+<li>Hierarchical clustering</li>
+<li>Clustering with affinity propagation</li>
+<li>Recommendation engine</li>
+</ul>
+<p><br></p>
+<div id="dimensionality-reduction-with-principal-components" class="section level1">
+<h1><span class="header-section-number">1</span> Dimensionality reduction with principal components</h1>
+<p>We are going to look at:</p>
+<ul>
+<li>How PCA works and interpret PCA</li>
+<li>Biplot</li>
+<li>Implementation in R</li>
+</ul>
+<div id="how-pca-works-and-interpret-pca" class="section level2">
+<h2><span class="header-section-number">1.1</span> How PCA works and interpret PCA</h2>
+<p>As a rule of thumb, the total information of a dataset is defined by the variability it contained. A very simple example is that, if you only have 1 feature then you will probably have less variability in the information than if you have 10 features. Does that apply the same if we had 1000 features? Generally, by adding more features, we dont necessarily gain more variability, and this variability tends to saturate. The typical examples is correlation. When you have many many features in the dataset, you will probably have some that are correlated with each other, and therefore, using these pairs isn’t going to yield much more value than if you only used one of those features. The idea of PCA is trying to explain the variability of the data in fewer variables, in other words, grouping together variables to form another simplified variable called Principal Components.</p>
+<p>Lets check a first example to the Boston dataset.</p>
+<ul>
+<li>We use the prcomp function and scale = TRUE</li>
+<li>pca_out shows the loadings used to calculate the principal components. Loadings are like <span class="math inline">\(\beta\)</span> coefficients that are multiplied with each feature to compute the principal component values</li>
+<li>boston_pc contains the actual principal components</li>
+<li>boston_pc has 14 PC, being PC1 the one that explains the maximum variability -&gt; you can see this in the summary(pca_out)</li>
+<li>Summary(pca_out) shows the cummulative variance of the principal components, going from 0.4674 for PC1 up to 1.00 for PC14. As you can see, the more PC14 you add, the less additional gain in variability you will have.</li>
+</ul>
+<pre class="r"><code># Load the data
+data(Boston, package = &quot;MASS&quot;)
+
+# Calculate a simple PCA
+pca_out = prcomp(Boston, scale. = T)
+pca_out</code></pre>
+<pre><code>## Standard deviations (1, .., p=14):
+##  [1] 2.5585132 1.2843410 1.1614241 0.9415625 0.9224421 0.8124105 0.7317177 0.6348831 0.5265582 0.5022524 0.4612919 0.4277704 0.3660733 0.2456149
+## 
+## Rotation (n x k) = (14 x 14):
+##                  PC1          PC2          PC3          PC4          PC5         PC6          PC7         PC8          PC9         PC10         PC11        PC12         PC13         PC14
+## crim     0.242284451 -0.065873108  0.395077419 -0.100366211  0.004957659 -0.22462703  0.777083366 -0.15740140  0.254211798 -0.071384615 -0.071068781  0.06327612  0.097032312  0.059114176
+## zn      -0.245435005 -0.148002653  0.394545713 -0.342958421  0.114495002 -0.33574694 -0.274178365  0.38031404  0.382899480  0.245579673 -0.127709065 -0.22112210 -0.132375830 -0.096296807
+## indus    0.331859746  0.127075668 -0.066081913  0.009626936 -0.022583692 -0.08082495 -0.340273839 -0.17174578  0.627048264 -0.254827026  0.273797614  0.34840828  0.083716854 -0.235472877
+## chas    -0.005027133  0.410668763 -0.125305293 -0.700406497 -0.535197817  0.16264906  0.074075775  0.03292700 -0.018642967 -0.041706916 -0.009968402 -0.01903975 -0.049917454  0.023488966
+## nox      0.325193880  0.254276363 -0.046475549 -0.053707583  0.194605570 -0.14899191 -0.198092965 -0.04745838 -0.043024391 -0.211620349 -0.437475550 -0.44909357  0.524974687  0.087649148
+## rm      -0.202816554  0.434005810  0.353406095  0.293357309 -0.008320481  0.13108056  0.074084938  0.43761566 -0.003666947 -0.526133916  0.223951923 -0.12560554 -0.049893596  0.007190515
+## age      0.296976574  0.260303205 -0.200823078  0.078426326  0.149750092 -0.06086960  0.118580363  0.58810569 -0.043265822  0.245647942 -0.329630928  0.48633905 -0.051462562 -0.038227027
+## dis     -0.298169809 -0.359149977  0.157068710 -0.184747787 -0.106219480  0.01162335 -0.104397844  0.12823060 -0.175802196 -0.299412026 -0.114600078  0.49356822  0.552292172  0.047124029
+## rad      0.303412754  0.031149596  0.418510334  0.051374381 -0.230352185 -0.13493732 -0.137080107 -0.07464872 -0.463439397  0.115793486  0.042213348  0.01863641 -0.006278474 -0.634975332
+## tax      0.324033052  0.008851406  0.343232194  0.026810695 -0.163425820 -0.18847146 -0.313984433 -0.07099212 -0.179446555 -0.008366413  0.042794054  0.17042179 -0.242987756  0.698822190
+## ptratio  0.207679535 -0.314623061  0.000399092  0.342036328 -0.615707380  0.27901731  0.001485608  0.28346960  0.274525949  0.160474164 -0.099991841 -0.23214842  0.188347079  0.055738160
+## black   -0.196638358  0.026481032 -0.361375914  0.201741185 -0.367460674 -0.78590728  0.074842780  0.04444175 -0.060975651 -0.146292237  0.039194858 -0.04152885 -0.021078199 -0.016165280
+## lstat    0.311397955 -0.201245177 -0.161060336 -0.242621217  0.178358870 -0.09197211  0.083213083  0.35748247 -0.171810921  0.066647267  0.683032690 -0.18189209  0.249489863  0.083143795
+## medv    -0.266636396  0.444924411  0.163188735  0.180297553 -0.050659893 -0.05402804 -0.009964973 -0.15230879  0.070751083  0.575547284  0.242001064  0.09828580  0.469629324  0.134127182</code></pre>
+<pre class="r"><code># Show actual principal components
+boston_pc = pca_out$x
+head(boston_pc)</code></pre>
+<pre><code>##         PC1        PC2         PC3        PC4         PC5        PC6       PC7         PC8        PC9          PC10        PC11       PC12       PC13        PC14
+## 1 -2.085280  0.4923660 -0.33565863 0.02806062  1.01179950 -0.2618327 0.3275539 -0.16005808 -0.4706823 -0.2055695943 -0.77929505 -0.1095206 -0.4941907  0.24768597
+## 2 -1.372024 -0.1707548 -0.96500929 0.43197898  0.25439282  0.3034788 0.5585569  0.28836506 -0.1956362 -0.2459951705 -0.27726872  0.5881189 -0.1129447 -0.11300499
+## 3 -2.374204  0.9131235 -0.08993678 1.12280202 -0.03275573  0.5083969 0.4870519 -0.08240874  0.0541731 -0.1948119933  0.02887660  0.4160065  0.3566767  0.05125674
+## 4 -2.834974  0.1946773  0.06048549 1.06462885 -0.45987914  0.7133022 0.6227126 -0.23948531 -0.3582658 -0.1557370949 -0.24432275  0.1345659  0.5772376  0.08953590
+## 5 -2.770174  0.4328708  0.06397874 1.12852010 -0.38180095  0.6552062 0.7038004  0.10252408 -0.4083493 -0.0004210339  0.00775053  0.2213430  0.7776655  0.14816451
+## 6 -2.298644 -0.3283548 -0.44993218 0.69305853 -0.29988892  0.5822707 0.6480631 -0.13247191 -0.4656342  0.1100695972 -0.48317508  0.3511512  0.4333900  0.02416410</code></pre>
+<pre class="r"><code># Summary of the PC
+summary(pca_out)</code></pre>
+<pre><code>## Importance of components%s:
+##                           PC1    PC2     PC3     PC4     PC5     PC6     PC7     PC8    PC9    PC10   PC11    PC12    PC13    PC14
+## Standard deviation     2.5585 1.2843 1.16142 0.94156 0.92244 0.81241 0.73172 0.63488 0.5266 0.50225 0.4613 0.42777 0.36607 0.24561
+## Proportion of Variance 0.4676 0.1178 0.09635 0.06332 0.06078 0.04714 0.03824 0.02879 0.0198 0.01802 0.0152 0.01307 0.00957 0.00431
+## Cumulative Proportion  0.4676 0.5854 0.68174 0.74507 0.80585 0.85299 0.89123 0.92003 0.9398 0.95785 0.9730 0.98612 0.99569 1.00000</code></pre>
+</div>
+<div id="biplot" class="section level2">
+<h2><span class="header-section-number">1.2</span> Biplot</h2>
+<p>This is the graphical representation of the information shown in the summary, where the x-axis represents the principal components:</p>
+<pre class="r"><code>plot(pca_out)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-63-1.png" /><!-- --></p>
+<p>The principal components can also help visualise how the features, as well as the observations are related:</p>
+<ul>
+<li>Each number is a row in the dataset</li>
+<li>The red lines are the columns</li>
+<li>The points situated together are more similar</li>
+<li>The columns that are closer to each other are more correlated</li>
+<li>We will see how to capture those numbers/lines that are similar in the next section.</li>
+</ul>
+<pre class="r"><code>par(mar=c(4,4,2,2))
+biplot(pca_out, cex = 0.5, cex.axis = 0.5)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-64-1.png" /><!-- --></p>
+<p><br></p>
+</div>
+</div>
+<div id="clustering-with-kmeans-and-principal-components" class="section level1">
+<h1><span class="header-section-number">2</span> Clustering with Kmeans and principal components</h1>
+<p>PCA helped us identify those components that explain variability in the data, and would help us select groups of variables that would be most useful for information gain. Kmeans is used to identify classes within the data. We will cover:</p>
+<ul>
+<li>How kmeans works</li>
+<li>Implementation</li>
+</ul>
+<p>and visualize the groupings</p>
+<ul>
+<li>How to cluster with principal components</li>
+</ul>
+<div id="how-kmeans-works" class="section level2">
+<h2><span class="header-section-number">2.1</span> How kmeans works</h2>
+<p>Here the steps for the Kmeans algorithm:</p>
+<ul>
+<li>Decide the number of clusters in your data (k) and then pick randomnly centers of those clusters</li>
+<li>Once we have the centers, calculate using a distance metric (lets say the Euclidean distance), the distance between each point and the different centers.</li>
+<li>When we have those distances, the points will grouped with it’s closest center location.</li>
+<li>We then recalculate the center of the group with the points we have grouped together, and we will be back to the step of calculating the nearest center.</li>
+<li>This iteration process stops when the points are not being reassigned to any other different grouping or the centers keep at the same location</li>
+<li>SOMETHING TO BE CAREFUL WITH! The final allocation of clusters can differ depending on the initialization of the random clusters. Therefore, it is always a good idea to perform kmeans a number of times and then take, for each point, the majority class that all kmean runs assigned it to.</li>
+</ul>
+<p><img src="images/1.PNG" width="1330" /></p>
+</div>
+<div id="implement-and-visualize-the-groupings" class="section level2">
+<h2><span class="header-section-number">2.2</span> Implement and visualize the groupings</h2>
+<p>Kmeans on iris data:</p>
+<ul>
+<li>We want 3 clusters</li>
+<li>You can see that all points are allocated to those 3 clusters</li>
+</ul>
+<pre class="r"><code>library(cluster)
+set.seed(100)
+
+# We exclude the species column because it doesnt represent numeric data and ask for kmeans to calculate 3 clusters
+k_obj = kmeans(iris[,-5],3)
+k_obj</code></pre>
+<pre><code>## K-means clustering with 3 clusters of sizes 33, 21, 96
+## 
+## Cluster means:
+##   Sepal.Length Sepal.Width Petal.Length Petal.Width
+## 1     5.175758    3.624242     1.472727   0.2727273
+## 2     4.738095    2.904762     1.790476   0.3523810
+## 3     6.314583    2.895833     4.973958   1.7031250
+## 
+## Clustering vector:
+##   [1] 1 2 2 2 1 1 1 1 2 2 1 1 2 2 1 1 1 1 1 1 1 1 1 1 2 2 1 1 1 2 2 1 1 1 2 1 1 1 2 1 1 2 2 1 1 2 1 2 1 1 3 3 3 3 3 3 3 2 3 3 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 2 3 3 3 3 2 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+## [123] 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+## 
+## Within cluster sum of squares by cluster:
+## [1]   6.432121  17.669524 118.651875
+##  (between_SS / total_SS =  79.0 %)
+## 
+## Available components:
+## 
+## [1] &quot;cluster&quot;      &quot;centers&quot;      &quot;totss&quot;        &quot;withinss&quot;     &quot;tot.withinss&quot; &quot;betweenss&quot;    &quot;size&quot;         &quot;iter&quot;         &quot;ifault&quot;</code></pre>
+</div>
+<div id="how-to-cluster-with-principal-components" class="section level2">
+<h2><span class="header-section-number">2.3</span> How to cluster with principal components</h2>
+<p>Since the iris dataset has more than 2 variables, lets see if we can use this as a simple example of clustering with principal components. We will also try to plot the components of PCA1 and PCA2:</p>
+<ul>
+<li>First we calculate principal components</li>
+<li>As you can see from the summary, the first 2 components pretty much offer all the variability we will get from the data.</li>
+<li>pcas shows how we predict, for each record, the classes using the different PCs. We would expect PC1 and PC2 to predict with better results than PC3 and PC4. To check this we can plot the results</li>
+<li>In the plot, you can see there is a distinct separation between the setosa class and the other 2, however, versicolor and virginica seems to fall in the same group. This is quite not satisfactory. Probably, this might be because, with the data we used, there is no distinct separation between these 2 groups.</li>
+</ul>
+<pre class="r"><code># Calculate principal components
+pcmod = prcomp(iris[,-5], scale = T)
+summary(pcmod)</code></pre>
+<pre><code>## Importance of components%s:
+##                           PC1    PC2     PC3     PC4
+## Standard deviation     1.7084 0.9560 0.38309 0.14393
+## Proportion of Variance 0.7296 0.2285 0.03669 0.00518
+## Cumulative Proportion  0.7296 0.9581 0.99482 1.00000</code></pre>
+<pre class="r"><code># We use the information from the PC to predict with them the classes of the whole data
+pcas = predict(pcmod)
+head(pcas)</code></pre>
+<pre><code>##            PC1        PC2         PC3          PC4
+## [1,] -2.257141 -0.4784238  0.12727962  0.024087508
+## [2,] -2.074013  0.6718827  0.23382552  0.102662845
+## [3,] -2.356335  0.3407664 -0.04405390  0.028282305
+## [4,] -2.291707  0.5953999 -0.09098530 -0.065735340
+## [5,] -2.381863 -0.6446757 -0.01568565 -0.035802870
+## [6,] -2.068701 -1.4842053 -0.02687825  0.006586116</code></pre>
+<pre class="r"><code># Given that we are interested in PC1 and PC2, we plot the results and the k-clusters
+plot(pcas[,1],pcas[,2], col = k_obj$cluster)
+text(pcas[,1],pcas[,2], iris$Species, cex = 0.5)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-67-1.png" /><!-- --></p>
+</div>
+<div id="clustering-with-kmeans-the-pcas-rather-than-original-data" class="section level2">
+<h2><span class="header-section-number">2.4</span> Clustering with kmeans the PCAs rather than original data</h2>
+<p>How can we rectifiy this? A possible solution is to cluster into those 3 groups based on the principal components of iris rather than the original data.</p>
+<ul>
+<li>As you can see from the plot, clustering based on the PCA seemed to have done the job!</li>
+<li>The only downside, is that we have gone through a process of MANUALLY providing the number of clusters to kmeans, therefore, needing an understanding of the data beforehand. The next section will try to cover how to extract the optimal number of clusters, when there is little knowledge of the data</li>
+</ul>
+<pre class="r"><code># PCAs
+pcmod = prcomp(iris[,-5], scale = T)
+pcas = predict(pcmod)
+
+# Cluster
+k_pca = kmeans(pcas, 3)
+
+# Plot
+plot(pcas[,1], pcas[,2], col = k_pca$cluster)
+text(pcas[,1], pcas[,2], iris$Species, cex = 0.5)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-68-1.png" /><!-- --></p>
+<pre class="r"><code># Table
+table(k_pca$cluster, iris$Species)</code></pre>
+<pre><code>##    
+##     setosa versicolor virginica
+##   1     50          0         0
+##   2      0         39        14
+##   3      0         11        36</code></pre>
+<p><br></p>
+</div>
+</div>
+<div id="clustering-tendency-and-optimum-number-of-clusters" class="section level1">
+<h1><span class="header-section-number">3</span> Clustering tendency and optimum number of clusters</h1>
+<p>As said just above, sometimes in real world applications, we might not know how many clusters we need or want to segment our data, so it can be helpful if we can do this automatically. We will see:</p>
+<ul>
+<li>Clustering tendency</li>
+<li>How to visualise it</li>
+<li>Finding optimum number of clusters</li>
+</ul>
+<div id="clustering-tendency" class="section level2">
+<h2><span class="header-section-number">3.1</span> Clustering tendency</h2>
+<p>In order to measure clustering tendency, we can look at basing this on <strong>Hopkins Statistic</strong>, which measures the probability that a given dataset is generated from random data points. So, the lower the Hopskings statistic, the lower the chance that the observations are spread uniformly.</p>
+<p><img src="images/2.PNG" width="1251" /></p>
+<p>Lets compute the Hopkins statistic for the iris dataset. As you can see below, the Hopkins statistic is ~18%, so we could say that the data points are not random.</p>
+<pre class="r"><code>library(clustertend)
+hopkins(iris[, -5], n = (nrow(iris)-1))</code></pre>
+<pre><code>## $H
+## [1] 0.1785227</code></pre>
+<p>Lets visualize the clustering tendency with a diss-plot and a random matrix of generated numbers. Given that we created random numbers, we expect no patterns to be created, and the dissplot shows this. Doing the same for the iris dataset, the dissplot shows clearly, 2 distinct groups. It also seems like, within the big groups, there are some different shades of grey indicating smaller subgroups within the same big group.</p>
+<pre class="r"><code>library(seriation)
+
+# Random matrix and plot
+set.seed(100)
+rand_mat = matrix(runif(1000), nrow = 100)
+dissplot(dist(rand_mat), main = &quot;Clustering Tendency: dissplot&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-71-1.png" /><!-- --></p>
+<pre class="r"><code># Iris plot -&gt; we pass the distance metric matrix to the dissplot function
+df_dist = dist(iris[,-5])
+dissplot(df_dist, main = &quot;Clustering Tendency: dissplot&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-71-2.png" /><!-- --></p>
+</div>
+<div id="selecting-the-optimum-number-of-clusters" class="section level2">
+<h2><span class="header-section-number">3.2</span> Selecting the optimum number of clusters</h2>
+<p>To do this we will use the <strong>Silhouette Width</strong>. Silhouette width can be used to measure how well separated the clusters are. In general, the more the separation the better the clustering, but this principle might not always be relevant as there could be groups that are structurally similar, so you should always apply a bit of common sense to this analysis.</p>
+<p><img src="images/3.PNG" width="1303" /></p>
+<pre class="r"><code># Loading the data
+data(ruspini, package = &quot;cluster&quot;)
+x = ruspini
+
+# Hopkins statistic 
+hopkins(ruspini, n = nrow(ruspini)-1)</code></pre>
+<pre><code>## $H
+## [1] 0.2283923</code></pre>
+<pre class="r"><code># Dissplot -&gt; shows possible 4 clusters
+dissplot(dist(ruspini))</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-73-1.png" /><!-- --></p>
+<pre class="r"><code># Initialize output of silhouette width
+avg_sil_wid = numeric(nrow(x)/2)
+
+# Run kmeans with different values and compute the silhouette width. The k with highest silhouette width, is likely to be the best
+for(nclus in 2:(nrow(x)/2)){
+  set.seed(100) # for repeatability
+  kout = kmeans(x, nclus) # run kmeans with different number of clusters
+  ss = silhouette(kout$cluster, dist(x)) # create a Silhouette plot
+  avg_sil_wid[nclus] = mean(ss[, 3]) # saving the results
+}
+
+opt_cluster = which.max(avg_sil_wid)
+opt_cluster</code></pre>
+<pre><code>## [1] 4</code></pre>
+<pre class="r"><code># Let plot this.
+par(mar = c(5,2,3,1))
+plot(1:(nrow(x)/2)
+     , avg_sil_wid
+     , type = &quot;b&quot;
+     , pch = 19
+     , frame = T
+     , xlab = &quot;Number of clusters k&quot;
+     , ylab = &quot;AvgSilWid&quot;
+     , main = &quot;Optimal clusters - yaxis = average silhouette width&quot;)
+points(x = opt_cluster
+       , y = max(avg_sil_wid)
+       , col = &quot;red&quot;
+       , pch = 21
+       , cex = 3)
+abline(v = which.max(avg_sil_wid), lty = 2)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-73-2.png" /><!-- --></p>
+<pre class="r"><code># Plotting points in a chart for the best selected cluster
+set.seed(100)
+kout = kmeans(x, 4)
+plot(ruspini, col = kout$cluster)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-73-3.png" /><!-- --></p>
+<p><br></p>
+</div>
+</div>
+<div id="hierarchical-clustering" class="section level1">
+<h1><span class="header-section-number">4</span> Hierarchical clustering</h1>
+<p>Clustering can also be computed and visualized as a hierarchy as well. We will see:</p>
+<ul>
+<li>How hierarchical clustering works</li>
+<li>Dendograms</li>
+</ul>
+<div id="how-hierarchical-clustering-works" class="section level2">
+<h2><span class="header-section-number">4.1</span> How hierarchical clustering works</h2>
+<p>Broadly, there are 2 type of hierarchical clustering:</p>
+<ul>
+<li>Agglomerative: (bottom-up) Starting with each ite in its own cluster, find the best pair to merge into a new cluster and repeat until all clusters are fused together</li>
+<li>Divise: (top-down) Starting with all the data in a single cluster, consider every possible way to divide the cluster into 2. Choose the best division and recursiely operated on both sides.</li>
+<li>Both approaches are based on calculating the similarity between clusters based on distances. The way distances are computed could be based on links:</li>
+</ul>
+<p><img src="images/4.PNG" width="1132" /><img src="images/5.PNG" width="1133" /><img src="images/6.PNG" width="1117" /></p>
+</div>
+<div id="implementation-in-r-with-seeds-dataset" class="section level2">
+<h2><span class="header-section-number">4.2</span> Implementation in R with seeds dataset</h2>
+<p>Lets use the seeds dataset from the UCI machine learning repo. In order to perform hierarchical clustering, we need to compute the distance matrix and then pass it to the <strong>hclust</strong> function.</p>
+<pre class="r"><code># Load data
+data = read.table(&quot;https://archive.ics.uci.edu/ml/machine-learning-databases/00236/seeds_dataset.txt&quot;, header = F, fill = T)
+colnames(data) = c(&quot;area&quot;,&quot;perimeter&quot;,&quot;compactness&quot;,&quot;length_of_kernel&quot;,&quot;width_of_kernel&quot;,&quot;asymmetry_coefficient&quot;,&quot;length_of_kernel_groove&quot;,&quot;type&quot;)
+
+# Distance matrix
+dist_mat = dist(data[,-8])
+
+# Hierarchical clustering
+h = hclust(dist_mat)
+h</code></pre>
+<pre><code>## 
+## Call:
+## hclust(d = dist_mat)
+## 
+## Cluster method   : complete 
+## Distance         : Euclidean 
+## Number of objects: 210</code></pre>
+<pre class="r"><code># Plotting hierarchical clustering
+plot(h, cex = 0.75, labels = data$type)
+
+# Adding 3 clustered rectangles with different colours
+rect.hclust(h, k = 3, border = 2:4)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-75-1.png" /><!-- --></p>
+<pre class="r"><code># After having creating the clustering, assign each observation to its cluster
+pred = cutree(h, k = 3)
+pred</code></pre>
+<pre><code>##   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 2 1 1 1 2 1 1 2 2 1 1 2 1 1 1 1 1 1 1 1 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 1 1 1 2 1 1 1 3 1 1 1 3 3 1 1 3 3 3 3 3 3 3 3 3 3 3 3 3 3 1 3 3 3 3 1 3 3 3 3 3 3 1 3 3 3 3 3 3 3 3 3 3 3 3 3 1
+## [123] 1 3 1 3 3 3 3 1 3 3 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2</code></pre>
+</div>
+<div id="implementation-in-r-with-iris-dataset" class="section level2">
+<h2><span class="header-section-number">4.3</span> Implementation in R with iris dataset</h2>
+<pre class="r"><code># Distance matrix
+dist_mat = dist(iris[,-5])
+
+# Hierarchical clustering
+h = hclust(dist_mat, method = &quot;ward.D&quot;)
+h</code></pre>
+<pre><code>## 
+## Call:
+## hclust(d = dist_mat, method = &quot;ward.D&quot;)
+## 
+## Cluster method   : ward.D 
+## Distance         : Euclidean 
+## Number of objects: 150</code></pre>
+<pre class="r"><code># Plotting hierarchical clustering
+plot(h)
+
+# Adding 3 clustered rectangles with different colours
+rect.hclust(h, k = 3, border = 2:4)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-76-1.png" /><!-- --></p>
+<pre class="r"><code># After having creating the clustering, assign each observation to its cluster
+pred = cutree(h, k = 3)
+pred</code></pre>
+<pre><code>##   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3 2 3 3 3 3 2 3 3 3 3 3 3 2 2 3 3 3 3 2 3 2
+## [123] 3 2 3 3 2 2 3 3 3 3 3 2 3 3 3 3 2 3 3 3 2 3 3 3 2 3 3 2</code></pre>
+<pre class="r"><code>table(pred, iris$Species)</code></pre>
+<pre><code>##     
+## pred setosa versicolor virginica
+##    1     50          0         0
+##    2      0         50        14
+##    3      0          0        36</code></pre>
+</div>
+</div>
+<div id="clustering-with-affinity-propagation" class="section level1">
+<h1><span class="header-section-number">5</span> Clustering with affinity propagation</h1>
+<p>An important difference between k-mean and affinity propagation is that in kmeans we start with a predefined number of clusters and randomnly initially choose the centers, running this multiple times to define the groupings. In affinity propagation every point is a potential center, also called examplers. The points kind of send messaged to each other and align themselves creating local clusters. This situation of sending messages continues, because points dont want the responsibility of being the exampler, so they look for others to share this, creating more stable and bigger clusters.</p>
+<div id="implementation-in-r-with-seeds-dataset-1" class="section level2">
+<h2><span class="header-section-number">5.1</span> Implementation in R with seeds dataset</h2>
+<pre class="r"><code>library(apcluster)
+
+# Read data
+data = read.table(&quot;https://archive.ics.uci.edu/ml/machine-learning-databases/00236/seeds_dataset.txt&quot;, header = F, fill = T)
+
+colnames(data) = c(&quot;area&quot;,&quot;perimeter&quot;,&quot;compactness&quot;,&quot;length_of_kernel&quot;,&quot;width_of_kernel&quot;,&quot;asymmetry_coefficient&quot;,&quot;length_of_kernel_groove&quot;,&quot;type&quot;)
+
+head(data)</code></pre>
+<pre><code>##    area perimeter compactness length_of_kernel width_of_kernel asymmetry_coefficient length_of_kernel_groove type
+## 1 15.26     14.84      0.8710            5.763           3.312                 2.221                   5.220    1
+## 2 14.88     14.57      0.8811            5.554           3.333                 1.018                   4.956    1
+## 3 14.29     14.09      0.9050            5.291           3.337                 2.699                   4.825    1
+## 4 13.84     13.94      0.8955            5.324           3.379                 2.259                   4.805    1
+## 5 16.14     14.99      0.9034            5.658           3.562                 1.355                   5.175    1
+## 6 14.38     14.21      0.8951            5.386           3.312                 2.462                   4.956    1</code></pre>
+<p>The apcluster function takes a similarity matrix as the main input, so we need to first calculate this. There are multiple options you could use to compute this:</p>
+<ul>
+<li>Negative similarity matrix –&gt; negDistMat(data[, -8], r = 2)</li>
+<li>Exponential similarity matrix –&gt; expSimMat(data[, -8], r = 2, w = 1, method = “euclidean”)</li>
+<li>Linear similarity matrix –&gt; linSimMat(data[, 8], w = 1, method = “euclidean”)</li>
+<li>Correlation pairwise similarity matrix –&gt; corSimMat(data[, -8], r = 1, signed = TRUE)</li>
+</ul>
+<pre class="r"><code># Similarity matrix -&gt; negative distance matrix: it computes the negative similarities of all 210 observations.
+# The &quot;r&quot; argument computes the power of the computed distances (in this square distances).
+neg_sim_mat = negDistMat(data[, -8], r = 2)
+
+# Compute the clusters
+clus = apcluster(neg_sim_mat)
+cl = clus@clusters # get the clusters
+xmplrs = clus@exemplars # get the exemplars
+
+# The dataset shows that we have 11 clusters! The only thing is that we need to convert clusters and exemplars into a &quot;consumable&quot; format.
+clus</code></pre>
+<pre><code>## 
+## APResult object
+## 
+## Number of samples     =  210 
+## Number of iterations  =  144 
+## Input preference      =  -16.40538 
+## Sum of similarities   =  -200.5588 
+## Sum of preferences    =  -180.4592 
+## Net similarity        =  -381.018 
+## Number of clusters    =  11 
+## 
+## Exemplars:
+##    28 54 59 75 83 100 105 142 174 182 209
+## Clusters:
+##    Cluster 1, exemplar 28:
+##       4 24 27 28 31 41 42 43 46 60 65 66 70 149 161 166 180 199 200 202
+##    Cluster 2, exemplar 54:
+##       3 6 7 8 11 13 14 15 16 21 22 29 30 32 33 34 39 45 48 49 51 53 54 57 68 136
+##    Cluster 3, exemplar 59:
+##       1 2 5 9 10 12 18 19 23 25 26 35 36 37 47 50 55 56 58 59 67 69 125 138 139
+##    Cluster 4, exemplar 75:
+##       38 44 52 71 72 73 75 76 77 80 81 96 101 108 123 130 133 134 135 137 140
+##    Cluster 5, exemplar 83:
+##       78 79 82 83 89 90 94 114 115 121
+##    Cluster 6, exemplar 100:
+##       84 86 87 91 98 99 100 102 106 110 111 113 116 128 129 131
+##    Cluster 7, exemplar 105:
+##       74 85 88 92 93 95 97 103 104 105 107 109 112 117 118 119 120 122 124 126 127 132
+##    Cluster 8, exemplar 142:
+##       40 142 143 152 185 204 208
+##    Cluster 9, exemplar 174:
+##       146 150 151 156 160 165 171 172 174 175 176 177 178 179 181 184 189 190 191 194
+##    Cluster 10, exemplar 182:
+##       17 20 64 141 144 145 148 153 158 163 164 167 182 183 187 196 197 198 201 210
+##    Cluster 11, exemplar 209:
+##       61 62 63 147 154 155 157 159 162 168 169 170 173 186 188 192 193 195 203 205 206 207 209</code></pre>
+<pre class="r"><code># Getting results into a dataframe --&gt; basically we want to attach to the original dataset the corresponding clusters we just computed
+
+tidy_clus = function(cl){
+  
+  # Assign names
+  names(cl) = paste0(&quot;cl&quot;, 1:length(cl))
+  
+  # Function to get the observation and cluster number in a dataframe
+  getCl = function(x){
+    data.frame(id = cl[[x]], cluster = rep(x, length(cl[[x]])))
+  }
+  
+  # Get the observation and cluster number
+  groups_list = lapply(names(cl), getCl)
+  groups_df = Reduce(rbind, groups_list)
+  groups = groups_df[order(groups_df$id),]
+  print(groups)
+}
+
+groups = tidy_clus(cl)</code></pre>
+<pre><code>##      id cluster
+## 1     1     cl3
+## 2     2     cl3
+## 3     3     cl2
+## 4     4     cl1
+## 5     5     cl3
+## 6     6     cl2
+## 7     7     cl2
+## 8     8     cl2
+## 9     9     cl3
+## 10   10     cl3
+## 11   11     cl2
+## 12   12     cl3
+## 13   13     cl2
+## 14   14     cl2
+## 15   15     cl2
+## 16   16     cl2
+## 17   17    cl10
+## 18   18     cl3
+## 19   19     cl3
+## 20   20    cl10
+## 21   21     cl2
+## 22   22     cl2
+## 23   23     cl3
+## 24   24     cl1
+## 25   25     cl3
+## 26   26     cl3
+## 27   27     cl1
+## 28   28     cl1
+## 29   29     cl2
+## 30   30     cl2
+## 31   31     cl1
+## 32   32     cl2
+## 33   33     cl2
+## 34   34     cl2
+## 35   35     cl3
+## 36   36     cl3
+## 37   37     cl3
+## 38   38     cl4
+## 39   39     cl2
+## 40   40     cl8
+## 41   41     cl1
+## 42   42     cl1
+## 43   43     cl1
+## 44   44     cl4
+## 45   45     cl2
+## 46   46     cl1
+## 47   47     cl3
+## 48   48     cl2
+## 49   49     cl2
+## 50   50     cl3
+## 51   51     cl2
+## 52   52     cl4
+## 53   53     cl2
+## 54   54     cl2
+## 55   55     cl3
+## 56   56     cl3
+## 57   57     cl2
+## 58   58     cl3
+## 59   59     cl3
+## 60   60     cl1
+## 61   61    cl11
+## 62   62    cl11
+## 63   63    cl11
+## 64   64    cl10
+## 65   65     cl1
+## 66   66     cl1
+## 67   67     cl3
+## 68   68     cl2
+## 69   69     cl3
+## 70   70     cl1
+## 71   71     cl4
+## 72   72     cl4
+## 73   73     cl4
+## 74   74     cl7
+## 75   75     cl4
+## 76   76     cl4
+## 77   77     cl4
+## 78   78     cl5
+## 79   79     cl5
+## 80   80     cl4
+## 81   81     cl4
+## 82   82     cl5
+## 83   83     cl5
+## 84   84     cl6
+## 85   85     cl7
+## 86   86     cl6
+## 87   87     cl6
+## 88   88     cl7
+## 89   89     cl5
+## 90   90     cl5
+## 91   91     cl6
+## 92   92     cl7
+## 93   93     cl7
+## 94   94     cl5
+## 95   95     cl7
+## 96   96     cl4
+## 97   97     cl7
+## 98   98     cl6
+## 99   99     cl6
+## 100 100     cl6
+## 101 101     cl4
+## 102 102     cl6
+## 103 103     cl7
+## 104 104     cl7
+## 105 105     cl7
+## 106 106     cl6
+## 107 107     cl7
+## 108 108     cl4
+## 109 109     cl7
+## 110 110     cl6
+## 111 111     cl6
+## 112 112     cl7
+## 113 113     cl6
+## 114 114     cl5
+## 115 115     cl5
+## 116 116     cl6
+## 117 117     cl7
+## 118 118     cl7
+## 119 119     cl7
+## 120 120     cl7
+## 121 121     cl5
+## 122 122     cl7
+## 123 123     cl4
+## 124 124     cl7
+## 125 125     cl3
+## 126 126     cl7
+## 127 127     cl7
+## 128 128     cl6
+## 129 129     cl6
+## 130 130     cl4
+## 131 131     cl6
+## 132 132     cl7
+## 133 133     cl4
+## 134 134     cl4
+## 135 135     cl4
+## 136 136     cl2
+## 137 137     cl4
+## 138 138     cl3
+## 139 139     cl3
+## 140 140     cl4
+## 141 141    cl10
+## 142 142     cl8
+## 143 143     cl8
+## 144 144    cl10
+## 145 145    cl10
+## 146 146     cl9
+## 147 147    cl11
+## 148 148    cl10
+## 149 149     cl1
+## 150 150     cl9
+## 151 151     cl9
+## 152 152     cl8
+## 153 153    cl10
+## 154 154    cl11
+## 155 155    cl11
+## 156 156     cl9
+## 157 157    cl11
+## 158 158    cl10
+## 159 159    cl11
+## 160 160     cl9
+## 161 161     cl1
+## 162 162    cl11
+## 163 163    cl10
+## 164 164    cl10
+## 165 165     cl9
+## 166 166     cl1
+## 167 167    cl10
+## 168 168    cl11
+## 169 169    cl11
+## 170 170    cl11
+## 171 171     cl9
+## 172 172     cl9
+## 173 173    cl11
+## 174 174     cl9
+## 175 175     cl9
+## 176 176     cl9
+## 177 177     cl9
+## 178 178     cl9
+## 179 179     cl9
+## 180 180     cl1
+## 181 181     cl9
+## 182 182    cl10
+## 183 183    cl10
+## 184 184     cl9
+## 185 185     cl8
+## 186 186    cl11
+## 187 187    cl10
+## 188 188    cl11
+## 189 189     cl9
+## 190 190     cl9
+## 191 191     cl9
+## 192 192    cl11
+## 193 193    cl11
+## 194 194     cl9
+## 195 195    cl11
+## 196 196    cl10
+## 197 197    cl10
+## 198 198    cl10
+## 199 199     cl1
+## 200 200     cl1
+## 201 201    cl10
+## 202 202     cl1
+## 203 203    cl11
+## 204 204     cl8
+## 205 205    cl11
+## 206 206    cl11
+## 207 207    cl11
+## 208 208     cl8
+## 209 209    cl11
+## 210 210    cl10</code></pre>
+<pre class="r"><code># Attaching to original dataset
+data_x = cbind(data, groups)
+head(data_x)</code></pre>
+<pre><code>##    area perimeter compactness length_of_kernel width_of_kernel asymmetry_coefficient length_of_kernel_groove type id cluster
+## 1 15.26     14.84      0.8710            5.763           3.312                 2.221                   5.220    1  1     cl3
+## 2 14.88     14.57      0.8811            5.554           3.333                 1.018                   4.956    1  2     cl3
+## 3 14.29     14.09      0.9050            5.291           3.337                 2.699                   4.825    1  3     cl2
+## 4 13.84     13.94      0.8955            5.324           3.379                 2.259                   4.805    1  4     cl1
+## 5 16.14     14.99      0.9034            5.658           3.562                 1.355                   5.175    1  5     cl3
+## 6 14.38     14.21      0.8951            5.386           3.312                 2.462                   4.956    1  6     cl2</code></pre>
+<p>Let’s check some of the results. Clearly, we have more clusters than seed types!!!! That is actually fine, we can keep this as it is if we wanted to, but we could also merge some of the clusters together.</p>
+<pre class="r"><code># More clusters than types
+t1 = table(data_x$type, data_x$cluster)
+t1</code></pre>
+<pre><code>##    
+##     cl1 cl2 cl3 cl4 cl5 cl6 cl7 cl8 cl9 cl10 cl11
+##   1  13  25  22   3   0   0   0   1   0    3    3
+##   2   0   1   3  18  10  16  22   0   0    0    0
+##   3   7   0   0   0   0   0   0   6  20   17   20</code></pre>
+<pre class="r"><code># Aggregating clusters --&gt; for example, cl1, cl2, cl3 seem to have the vast majority of the type = 1.
+# Possible grouping
+clus_agg = aggExCluster(s = neg_sim_mat, x = clus)
+plot(clus_agg)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-80-1.png" /><!-- --></p>
+<pre class="r"><code># Specify number of clusters
+clus_agg_4 = cutree(clus_agg, k = 3)
+clus_agg_4</code></pre>
+<pre><code>## 
+## ExClust object
+## 
+## Number of samples   =  210 
+## Number of clusters  =  3 
+## 
+## Exemplars:
+##    6 163 122
+## Clusters:
+##    Cluster 1, exemplar 6:
+##       4 24 27 28 31 41 42 43 46 60 65 66 70 149 161 166 180 199 200 202 3 6 7 8 11 13 14 15 16 21 22 29 30 32 33 34 39 45 48 49 51 53 54 57 68 136 1 2 5 9 10 12 18 19 23 25 26 35 36 37 47 50 55 56 58 59 67 69 125 138 139
+##    Cluster 2, exemplar 163:
+##       40 142 143 152 185 204 208 146 150 151 156 160 165 171 172 174 175 176 177 178 179 181 184 189 190 191 194 17 20 64 141 144 145 148 153 158 163 164 167 182 183 187 196 197 198 201 210 61 62 63 147 154 155 157 159 162 168 169 170 173 186 188 
+##       192 193 195 203 205 206 207 209
+##    Cluster 3, exemplar 122:
+##       78 79 82 83 89 90 94 114 115 121 38 44 52 71 72 73 75 76 77 80 81 96 101 108 123 130 133 134 135 137 140 84 86 87 91 98 99 100 102 106 110 111 113 116 128 129 131 74 85 88 92 93 95 97 103 104 105 107 109 112 117 118 119 120 122 124 126 127 132</code></pre>
+<pre class="r"><code>groups2 = tidy_clus(cl = clus_agg_4@clusters)</code></pre>
+<pre><code>##      id cluster
+## 1     1     cl1
+## 2     2     cl1
+## 3     3     cl1
+## 4     4     cl1
+## 5     5     cl1
+## 6     6     cl1
+## 7     7     cl1
+## 8     8     cl1
+## 9     9     cl1
+## 10   10     cl1
+## 11   11     cl1
+## 12   12     cl1
+## 13   13     cl1
+## 14   14     cl1
+## 15   15     cl1
+## 16   16     cl1
+## 17   17     cl2
+## 18   18     cl1
+## 19   19     cl1
+## 20   20     cl2
+## 21   21     cl1
+## 22   22     cl1
+## 23   23     cl1
+## 24   24     cl1
+## 25   25     cl1
+## 26   26     cl1
+## 27   27     cl1
+## 28   28     cl1
+## 29   29     cl1
+## 30   30     cl1
+## 31   31     cl1
+## 32   32     cl1
+## 33   33     cl1
+## 34   34     cl1
+## 35   35     cl1
+## 36   36     cl1
+## 37   37     cl1
+## 38   38     cl3
+## 39   39     cl1
+## 40   40     cl2
+## 41   41     cl1
+## 42   42     cl1
+## 43   43     cl1
+## 44   44     cl3
+## 45   45     cl1
+## 46   46     cl1
+## 47   47     cl1
+## 48   48     cl1
+## 49   49     cl1
+## 50   50     cl1
+## 51   51     cl1
+## 52   52     cl3
+## 53   53     cl1
+## 54   54     cl1
+## 55   55     cl1
+## 56   56     cl1
+## 57   57     cl1
+## 58   58     cl1
+## 59   59     cl1
+## 60   60     cl1
+## 61   61     cl2
+## 62   62     cl2
+## 63   63     cl2
+## 64   64     cl2
+## 65   65     cl1
+## 66   66     cl1
+## 67   67     cl1
+## 68   68     cl1
+## 69   69     cl1
+## 70   70     cl1
+## 71   71     cl3
+## 72   72     cl3
+## 73   73     cl3
+## 74   74     cl3
+## 75   75     cl3
+## 76   76     cl3
+## 77   77     cl3
+## 78   78     cl3
+## 79   79     cl3
+## 80   80     cl3
+## 81   81     cl3
+## 82   82     cl3
+## 83   83     cl3
+## 84   84     cl3
+## 85   85     cl3
+## 86   86     cl3
+## 87   87     cl3
+## 88   88     cl3
+## 89   89     cl3
+## 90   90     cl3
+## 91   91     cl3
+## 92   92     cl3
+## 93   93     cl3
+## 94   94     cl3
+## 95   95     cl3
+## 96   96     cl3
+## 97   97     cl3
+## 98   98     cl3
+## 99   99     cl3
+## 100 100     cl3
+## 101 101     cl3
+## 102 102     cl3
+## 103 103     cl3
+## 104 104     cl3
+## 105 105     cl3
+## 106 106     cl3
+## 107 107     cl3
+## 108 108     cl3
+## 109 109     cl3
+## 110 110     cl3
+## 111 111     cl3
+## 112 112     cl3
+## 113 113     cl3
+## 114 114     cl3
+## 115 115     cl3
+## 116 116     cl3
+## 117 117     cl3
+## 118 118     cl3
+## 119 119     cl3
+## 120 120     cl3
+## 121 121     cl3
+## 122 122     cl3
+## 123 123     cl3
+## 124 124     cl3
+## 125 125     cl1
+## 126 126     cl3
+## 127 127     cl3
+## 128 128     cl3
+## 129 129     cl3
+## 130 130     cl3
+## 131 131     cl3
+## 132 132     cl3
+## 133 133     cl3
+## 134 134     cl3
+## 135 135     cl3
+## 136 136     cl1
+## 137 137     cl3
+## 138 138     cl1
+## 139 139     cl1
+## 140 140     cl3
+## 141 141     cl2
+## 142 142     cl2
+## 143 143     cl2
+## 144 144     cl2
+## 145 145     cl2
+## 146 146     cl2
+## 147 147     cl2
+## 148 148     cl2
+## 149 149     cl1
+## 150 150     cl2
+## 151 151     cl2
+## 152 152     cl2
+## 153 153     cl2
+## 154 154     cl2
+## 155 155     cl2
+## 156 156     cl2
+## 157 157     cl2
+## 158 158     cl2
+## 159 159     cl2
+## 160 160     cl2
+## 161 161     cl1
+## 162 162     cl2
+## 163 163     cl2
+## 164 164     cl2
+## 165 165     cl2
+## 166 166     cl1
+## 167 167     cl2
+## 168 168     cl2
+## 169 169     cl2
+## 170 170     cl2
+## 171 171     cl2
+## 172 172     cl2
+## 173 173     cl2
+## 174 174     cl2
+## 175 175     cl2
+## 176 176     cl2
+## 177 177     cl2
+## 178 178     cl2
+## 179 179     cl2
+## 180 180     cl1
+## 181 181     cl2
+## 182 182     cl2
+## 183 183     cl2
+## 184 184     cl2
+## 185 185     cl2
+## 186 186     cl2
+## 187 187     cl2
+## 188 188     cl2
+## 189 189     cl2
+## 190 190     cl2
+## 191 191     cl2
+## 192 192     cl2
+## 193 193     cl2
+## 194 194     cl2
+## 195 195     cl2
+## 196 196     cl2
+## 197 197     cl2
+## 198 198     cl2
+## 199 199     cl1
+## 200 200     cl1
+## 201 201     cl2
+## 202 202     cl1
+## 203 203     cl2
+## 204 204     cl2
+## 205 205     cl2
+## 206 206     cl2
+## 207 207     cl2
+## 208 208     cl2
+## 209 209     cl2
+## 210 210     cl2</code></pre>
+<pre class="r"><code>data_xx = cbind(data, groups2)
+
+# Checking the table
+t2 = table(data_xx$type, data_xx$cluster)
+t2</code></pre>
+<pre><code>##    
+##     cl1 cl2 cl3
+##   1  60   7   3
+##   2   4   0  66
+##   3   7  63   0</code></pre>
+</div>
+<div id="pca-and-clustering-with-affinity-propagation" class="section level2">
+<h2><span class="header-section-number">5.2</span> PCA and clustering with affinity propagation</h2>
+<pre class="r"><code>data(iris)
+
+# Get PCA
+pca_iris_mod = princomp(iris[, -5])
+screeplot(pca_iris_mod, type = &quot;lines&quot;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-81-1.png" /><!-- --></p>
+<pre class="r"><code>pca_iris = predict(pca_iris_mod)
+head(pca_iris)</code></pre>
+<pre><code>##         Comp.1     Comp.2      Comp.3       Comp.4
+## [1,] -2.684126 -0.3193972 -0.02791483  0.002262437
+## [2,] -2.714142  0.1770012 -0.21046427  0.099026550
+## [3,] -2.888991  0.1449494  0.01790026  0.019968390
+## [4,] -2.745343  0.3182990  0.03155937 -0.075575817
+## [5,] -2.728717 -0.3267545  0.09007924 -0.061258593
+## [6,] -2.280860 -0.7413304  0.16867766 -0.024200858</code></pre>
+<pre class="r"><code># run AP clusters for predefined k clusters
+iris_clus = apclusterK(negDistMat(r = 2), pca_iris[,1:2], K = 3, prc = 0)</code></pre>
+<pre><code>## Trying p = -0.6777979 
+##    Number of clusters: 16 
+## Trying p = -6.777979 
+##    Number of clusters: 5 
+## Trying p = -67.77979 
+##    Number of clusters: 3 
+## 
+## Number of clusters: 3 for p = -67.77979</code></pre>
+<pre class="r"><code>cl = iris_clus@clusters
+xmplrs = iris_clus@exemplars
+
+# Tidy clusters and append to iris dataset
+grps = tidy_clus(cl)</code></pre>
+<pre><code>##      id cluster
+## 1     1     cl1
+## 2     2     cl1
+## 3     3     cl1
+## 4     4     cl1
+## 5     5     cl1
+## 6     6     cl1
+## 7     7     cl1
+## 8     8     cl1
+## 9     9     cl1
+## 10   10     cl1
+## 11   11     cl1
+## 12   12     cl1
+## 13   13     cl1
+## 14   14     cl1
+## 15   15     cl1
+## 16   16     cl1
+## 17   17     cl1
+## 18   18     cl1
+## 19   19     cl1
+## 20   20     cl1
+## 21   21     cl1
+## 22   22     cl1
+## 23   23     cl1
+## 24   24     cl1
+## 25   25     cl1
+## 26   26     cl1
+## 27   27     cl1
+## 28   28     cl1
+## 29   29     cl1
+## 30   30     cl1
+## 31   31     cl1
+## 32   32     cl1
+## 33   33     cl1
+## 34   34     cl1
+## 35   35     cl1
+## 36   36     cl1
+## 37   37     cl1
+## 38   38     cl1
+## 39   39     cl1
+## 40   40     cl1
+## 41   41     cl1
+## 42   42     cl1
+## 43   43     cl1
+## 44   44     cl1
+## 45   45     cl1
+## 46   46     cl1
+## 47   47     cl1
+## 48   48     cl1
+## 49   49     cl1
+## 50   50     cl1
+## 51   51     cl3
+## 52   52     cl2
+## 53   53     cl3
+## 54   54     cl2
+## 55   55     cl2
+## 56   56     cl2
+## 57   57     cl2
+## 58   58     cl2
+## 59   59     cl2
+## 60   60     cl2
+## 61   61     cl2
+## 62   62     cl2
+## 63   63     cl2
+## 64   64     cl2
+## 65   65     cl2
+## 66   66     cl2
+## 67   67     cl2
+## 68   68     cl2
+## 69   69     cl2
+## 70   70     cl2
+## 71   71     cl2
+## 72   72     cl2
+## 73   73     cl2
+## 74   74     cl2
+## 75   75     cl2
+## 76   76     cl2
+## 77   77     cl3
+## 78   78     cl3
+## 79   79     cl2
+## 80   80     cl2
+## 81   81     cl2
+## 82   82     cl2
+## 83   83     cl2
+## 84   84     cl2
+## 85   85     cl2
+## 86   86     cl2
+## 87   87     cl2
+## 88   88     cl2
+## 89   89     cl2
+## 90   90     cl2
+## 91   91     cl2
+## 92   92     cl2
+## 93   93     cl2
+## 94   94     cl2
+## 95   95     cl2
+## 96   96     cl2
+## 97   97     cl2
+## 98   98     cl2
+## 99   99     cl2
+## 100 100     cl2
+## 101 101     cl3
+## 102 102     cl2
+## 103 103     cl3
+## 104 104     cl3
+## 105 105     cl3
+## 106 106     cl3
+## 107 107     cl2
+## 108 108     cl3
+## 109 109     cl3
+## 110 110     cl3
+## 111 111     cl3
+## 112 112     cl3
+## 113 113     cl3
+## 114 114     cl2
+## 115 115     cl2
+## 116 116     cl3
+## 117 117     cl3
+## 118 118     cl3
+## 119 119     cl3
+## 120 120     cl2
+## 121 121     cl3
+## 122 122     cl2
+## 123 123     cl3
+## 124 124     cl2
+## 125 125     cl3
+## 126 126     cl3
+## 127 127     cl2
+## 128 128     cl2
+## 129 129     cl3
+## 130 130     cl3
+## 131 131     cl3
+## 132 132     cl3
+## 133 133     cl3
+## 134 134     cl3
+## 135 135     cl3
+## 136 136     cl3
+## 137 137     cl3
+## 138 138     cl3
+## 139 139     cl2
+## 140 140     cl3
+## 141 141     cl3
+## 142 142     cl3
+## 143 143     cl2
+## 144 144     cl3
+## 145 145     cl3
+## 146 146     cl3
+## 147 147     cl2
+## 148 148     cl3
+## 149 149     cl3
+## 150 150     cl2</code></pre>
+<pre class="r"><code>iris_x = cbind(iris, grps)
+iris_x$species_abbr = abbreviate(iris_x$Species, 1)
+head(iris_x)</code></pre>
+<pre><code>##   Sepal.Length Sepal.Width Petal.Length Petal.Width Species id cluster species_abbr
+## 1          5.1         3.5          1.4         0.2  setosa  1     cl1            s
+## 2          4.9         3.0          1.4         0.2  setosa  2     cl1            s
+## 3          4.7         3.2          1.3         0.2  setosa  3     cl1            s
+## 4          4.6         3.1          1.5         0.2  setosa  4     cl1            s
+## 5          5.0         3.6          1.4         0.2  setosa  5     cl1            s
+## 6          5.4         3.9          1.7         0.4  setosa  6     cl1            s</code></pre>
+<pre class="r"><code># Plot
+# - Colour of the point represents the predicted class
+# - Text represents the actual class
+# - There are some mismatches
+plot(pca_iris[, 1:2], col = iris_x$cluster, pch = &quot;*&quot;, main = &quot;Iris - AP Cluster&quot;)
+points(pca_iris[xmplrs, 1], pca_iris[xmplrs, 2], col = iris_x[xmplrs, &quot;cluster&quot;], cex = 1.5)
+text(pca_iris[, 1], pca_iris[, 2]-0.1, labels = iris_x$species_abbr, cex = 0.5
+     , col = as.numeric(as.factor(iris_x$Species)))</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-81-2.png" /><!-- --></p>
+</div>
+</div>
+<div id="recommendation-engines" class="section level1">
+<h1><span class="header-section-number">6</span> Recommendation engines</h1>
+<p>We will briefly look at:</p>
+<ul>
+<li>Inputs to recommendation algorithms and different approaches</li>
+<li>How to find similar customers</li>
+<li>How to find similar products</li>
+</ul>
+<div id="inputs-to-recommendation-algorithms-and-different-approaches" class="section level2">
+<h2><span class="header-section-number">6.1</span> Inputs to recommendation algorithms and different approaches</h2>
+<p>Typical inputs to products can take multiple forms, for example, opinions from users, some sort of action, etc. As an example, check the image below.</p>
+<p><img src="images/7.PNG" width="1354" /></p>
+<p>If you see the image above, the matrix shows how could we use the rating information for recommendations:</p>
+<ul>
+<li>We could try to cluster users that seem to buy and like the same type of products, and the recommend the ones that they haven’t already bought and also seem to be popular within that cluster. This is called <strong>User Based Collaborative Filtering (UBCF)</strong>. For example, if all my friends are like me and they have watched a movie I haven’t, they would probably recommend me watching it.</li>
+<li>We could try to cluster items. This is called <strong>Item Based Collaborative Filtering (IBCF)</strong>.</li>
+<li>We can also recommend based purely on popularity.</li>
+<li>Or re-recommend</li>
+<li>Or by assocation rules to see if there are products that are bought often together. For example, hot dog buns might always be bought together with mustard or ketchup.</li>
+<li>Or by random recommendations</li>
+<li>Or ALS -&gt; Latenten Factors</li>
+<li>Or by SVD approximiation with column mean imputation</li>
+</ul>
+</div>
+<div id="user-collaborative-filtering" class="section level2">
+<h2><span class="header-section-number">6.2</span> User collaborative filtering</h2>
+<p><img src="images/8.PNG" width="1328" /></p>
+<pre class="r"><code># Downloading the data
+ratingsDF = read.csv(&quot;https://raw.githubusercontent.com/selva86/datasets/master/movie_ratings.csv&quot;)
+
+# Create a matrix with the data:
+# ROWS --&gt;  USERS
+# COLUMNS --&gt; FILMS
+# ELEMENTS --&gt; RATINGS (1 to 5)
+ratingsMat = as.matrix(ratingsDF)
+ratingsMat[1:5,1:5]</code></pre>
+<pre><code>##      Toy.Story Jumanji Grumpier.Old.Men Waiting.to.Exhale Father.of.the.Bride.Part.II
+## [1,]        NA      NA               NA                NA                          NA
+## [2,]         5      NA                2                NA                           3
+## [3,]        NA      NA               NA                NA                           3
+## [4,]        NA      NA               NA                NA                          NA
+## [5,]         4      NA               NA                NA                          NA</code></pre>
+<pre class="r"><code># Recommender package
+library(recommenderlab)
+
+# The recommenderlab functions (some of them), work with a special matrix format of class &quot;realRatingsMatrix&quot;
+ratings = as(ratingsMat, &quot;realRatingMatrix&quot;)
+class(ratings)</code></pre>
+<pre><code>## [1] &quot;realRatingMatrix&quot;
+## attr(,&quot;package&quot;)
+## [1] &quot;recommenderlab&quot;</code></pre>
+<pre class="r"><code># Calculate user similarity with the first 10 users
+usr_sim = recommenderlab::similarity(ratings[1:10, ]
+                                     , method = &quot;cosine&quot;
+                                     , which = &quot;users&quot;)
+usr_sim[is.na(usr_sim)] = 0
+usr_sim = round(usr_sim, 2)
+
+# Visualise the users with a dendogram
+plot(hclust(usr_sim))</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-84-1.png" /><!-- --></p>
+</div>
+<div id="item-collaborative-filtering" class="section level2">
+<h2><span class="header-section-number">6.3</span> Item collaborative filtering</h2>
+<pre class="r"><code># Find similar items (first 15 items)
+item_sim = recommenderlab::similarity(ratings[, 1:15]
+                                      , method = &quot;cosine&quot;
+                                      , which = &quot;items&quot;)
+item_sim[is.na(item_sim)] = 0
+item_sim = round(item_sim, 2)
+
+# Plot with dendogram
+plot(hclust(item_sim))</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-85-1.png" /><!-- --></p>
+</div>
+<div id="building-a-recommendation-system" class="section level2">
+<h2><span class="header-section-number">6.4</span> Building a recommendation system</h2>
+<p>Lets start understanding what available methods have we got in the recommenderlabs package if we are dealing with numbers</p>
+<pre class="r"><code># Find similar items (first 15 items)
+recommender_models = recommenderRegistry$get_entries(dataType = &quot;realRatingMatrix&quot;)
+names(recommender_models)</code></pre>
+<pre><code>## [1] &quot;ALS_realRatingMatrix&quot;          &quot;ALS_implicit_realRatingMatrix&quot; &quot;IBCF_realRatingMatrix&quot;         &quot;POPULAR_realRatingMatrix&quot;      &quot;RANDOM_realRatingMatrix&quot;       &quot;RERECOMMEND_realRatingMatrix&quot;  &quot;SVD_realRatingMatrix&quot;         
+## [8] &quot;SVDF_realRatingMatrix&quot;         &quot;UBCF_realRatingMatrix&quot;</code></pre>
+<pre class="r"><code># Out of the 9 models shown, we want to use the UBCF method. Let&#39;s check default parameter it uses
+recommender_models$UBCF_realRatingMatrix</code></pre>
+<pre><code>## Recommender method: UBCF for realRatingMatrix
+## Description: Recommender based on user-based collaborative filtering.
+## Reference: NA
+## Parameters:
+##     method nn sample normalize
+## 1 &quot;cosine&quot; 25  FALSE  &quot;center&quot;</code></pre>
+<pre class="r"><code># Split the data into train/test samples
+set.seed(100)
+
+train_rows = sample(1:nrow(ratings), size = 0.9*nrow(ratings), replace = F)
+ratings_train = ratings[train_rows,]
+ratings_test = ratings[-train_rows,]
+
+# Build the UBCF model
+rec_model = Recommender(data = ratings_train, method = &quot;UBCF&quot;)
+rec_model</code></pre>
+<pre><code>## Recommender of type &#39;UBCF&#39; for &#39;realRatingMatrix&#39; 
+## learned using 601 users.</code></pre>
+<pre class="r"><code>getModel(rec_model)</code></pre>
+<pre><code>## $description
+## [1] &quot;UBCF-Real data: contains full or sample of data set&quot;
+## 
+## $data
+## 601 x 10325 rating matrix of class &#39;realRatingMatrix&#39; with 96484 ratings.
+## Normalized using center on rows.
+## 
+## $method
+## [1] &quot;cosine&quot;
+## 
+## $nn
+## [1] 25
+## 
+## $sample
+## [1] FALSE
+## 
+## $normalize
+## [1] &quot;center&quot;
+## 
+## $verbose
+## [1] FALSE</code></pre>
+<pre class="r"><code># Recommend movies to users in test data
+n_reco = 5 # lets get 5 recommendations for each user
+recommendations = predict(object = rec_model, newdata = ratings_test, n = n_reco)
+recommendations</code></pre>
+<pre><code>## Recommendations as &#39;topNList&#39; with n = 5 for 67 users.</code></pre>
+<pre class="r"><code>recommendations@ratings</code></pre>
+<pre><code>## [[1]]
+## [1] 4.258712 4.202270 4.195589 4.160996 4.127671
+## 
+## [[2]]
+## [1] 4.666132 4.630688 4.608317 4.568732 4.531423
+## 
+## [[3]]
+## [1] 4.140874 4.046294 4.024410 4.002989 3.967532
+## 
+## [[4]]
+## [1] 3.793437 3.755644 3.672284 3.654813 3.645319
+## 
+## [[5]]
+## [1] 4.573607 4.543377 4.462425 4.402172 4.373979
+## 
+## [[6]]
+## [1] 4.035998 3.951468 3.944601 3.931924 3.922397
+## 
+## [[7]]
+## [1] 4.435047 4.297575 4.267572 4.260334 4.251291
+## 
+## [[8]]
+## [1] 3.585766 3.560586 3.511183 3.506982 3.490982
+## 
+## [[9]]
+## [1] 3.341358 3.320795 3.318867 3.316250 3.301000
+## 
+## [[10]]
+## [1] 4.159974 4.146941 4.136434 4.055383 4.046320
+## 
+## [[11]]
+## [1] 4.121680 4.093048 4.029094 3.999485 3.989266
+## 
+## [[12]]
+## [1] 4.074135 4.023430 3.999399 3.988638 3.983057
+## 
+## [[13]]
+## [1] 3.911575 3.901494 3.852136 3.796084 3.776481
+## 
+## [[14]]
+## [1] 4.242693 4.236975 4.235277 4.230373 4.226237
+## 
+## [[15]]
+## [1] 4.001066 3.946893 3.914639 3.898653 3.892662
+## 
+## [[16]]
+## [1] 4.542694 4.422536 4.419018 4.401394 4.395012
+## 
+## [[17]]
+## [1] 4.422558 4.408640 4.323022 4.309175 4.283285
+## 
+## [[18]]
+## [1] 3.817150 3.785627 3.779508 3.761284 3.746712
+## 
+## [[19]]
+## [1] 4.190179 4.175197 4.164183 4.154091 4.150427
+## 
+## [[20]]
+## [1] 4.375308 4.326578 4.326036 4.307211 4.292558
+## 
+## [[21]]
+## [1] 2.920320 2.901249 2.890373 2.881410 2.878248
+## 
+## [[22]]
+## [1] 3.794748 3.787829 3.770204 3.750748 3.750748
+## 
+## [[23]]
+## [1] 4.514942 4.488121 4.439565 4.408678 4.360682
+## 
+## [[24]]
+## [1] 3.426497 3.415211 3.377827 3.375772 3.372328
+## 
+## [[25]]
+## [1] 4.239062 4.234106 4.227297 4.208619 4.205498
+## 
+## [[26]]
+## [1] 3.542868 3.471130 3.455651 3.450016 3.443574
+## 
+## [[27]]
+## [1] 4.118225 4.018927 3.996823 3.904460 3.899464
+## 
+## [[28]]
+## [1] 3.982240 3.960759 3.954145 3.938240 3.938240
+## 
+## [[29]]
+## [1] 4.064039 4.050147 4.041618 4.015158 4.000864
+## 
+## [[30]]
+## [1] 4.127773 4.083323 4.073955 4.059834 4.055871
+## 
+## [[31]]
+## [1] 3.539470 3.516153 3.478456 3.458144 3.421716
+## 
+## [[32]]
+## [1] 3.589182 3.576175 3.555727 3.550634 3.545758
+## 
+## [[33]]
+## [1] 4.350275 4.312209 4.301272 4.285232 4.284825
+## 
+## [[34]]
+## [1] 3.593200 3.580080 3.540068 3.524756 3.512199
+## 
+## [[35]]
+## [1] 3.953252 3.937757 3.928224 3.904043 3.901252
+## 
+## [[36]]
+## [1] 3.844496 3.831914 3.811983 3.810320 3.810006
+## 
+## [[37]]
+## [1] 4.817525 4.809996 4.801554 4.789638 4.731100
+## 
+## [[38]]
+## [1] 3.789379 3.786239 3.757481 3.746075 3.740673
+## 
+## [[39]]
+## [1] 3.847271 3.809341 3.790442 3.783988 3.773428
+## 
+## [[40]]
+## [1] 4.058650 4.034923 4.034016 4.033442 4.029894
+## 
+## [[41]]
+## [1] 3.318350 3.309700 3.297001 3.286777 3.201799
+## 
+## [[42]]
+## [1] 4.221159 4.221060 4.200376 4.181224 4.178111
+## 
+## [[43]]
+## [1] 4.427902 4.406976 4.325977 4.257451 4.241733
+## 
+## [[44]]
+## [1] 3.620033 3.565379 3.562445 3.560590 3.556368
+## 
+## [[45]]
+## [1] 4.218854 4.213849 4.208622 4.201901 4.197075
+## 
+## [[46]]
+## [1] 3.623236 3.613288 3.593910 3.587726 3.580560
+## 
+## [[47]]
+## [1] 4.245843 4.217194 4.172189 4.144080 4.132762
+## 
+## [[48]]
+## [1] 2.811310 2.809870 2.807136 2.794832 2.787068
+## 
+## [[49]]
+## [1] 4.727430 4.605641 4.567443 4.558394 4.555843
+## 
+## [[50]]
+## [1] 3.579636 3.565829 3.477136 3.450840 3.440398
+## 
+## [[51]]
+## [1] 3.675109 3.635192 3.582652 3.570797 3.554508
+## 
+## [[52]]
+## [1] 4.017404 3.987185 3.984147 3.980144 3.979480
+## 
+## [[53]]
+## [1] 3.649603 3.627951 3.626383 3.612755 3.611805
+## 
+## [[54]]
+## [1] 4.341066 4.304699 4.124264 4.104932 4.104832
+## 
+## [[55]]
+## [1] 4.610271 4.481110 4.451875 4.403312 4.401609
+## 
+## [[56]]
+## [1] 4.050974 3.997509 3.980257 3.933458 3.866057
+## 
+## [[57]]
+## [1] 3.651451 3.623683 3.618343 3.614393 3.599451
+## 
+## [[58]]
+## [1] 4.186273 4.175992 4.122156 4.026396 4.025573
+## 
+## [[59]]
+## [1] 3.820787 3.815796 3.801493 3.800565 3.795423
+## 
+## [[60]]
+## [1] 3.759869 3.725311 3.725311 3.725311 3.724903
+## 
+## [[61]]
+## [1] 3.176119 3.050367 3.008425 2.968006 2.933910
+## 
+## [[62]]
+## [1] 4.018562 3.980509 3.934999 3.896720 3.886163
+## 
+## [[63]]
+## [1] 3.967533 3.947433 3.943040 3.924257 3.909057
+## 
+## [[64]]
+## [1] 4.056506 4.048934 4.009043 4.005477 3.955654
+## 
+## [[65]]
+## [1] 3.807623 3.805951 3.642468 3.635111 3.635090
+## 
+## [[66]]
+## [1] 3.746864 3.730434 3.714274 3.670448 3.659473
+## 
+## [[67]]
+## [1] 3.251883 3.194212 3.140921 3.136034 3.120574</code></pre>
+<pre class="r"><code>recommendations@items</code></pre>
+<pre><code>## [[1]]
+## [1] 261  99 696 280  48
+## 
+## [[2]]
+## [1] 317 261 280  99 406
+## 
+## [[3]]
+## [1]   99  526 2172  406  696
+## 
+## [[4]]
+## [1]  261  472 2282  280  696
+## 
+## [[5]]
+## [1]  317  526   99 1265  236
+## 
+## [[6]]
+## [1]  696 2366  734  961 1012
+## 
+## [[7]]
+## [1]  231  523 1265 1296  972
+## 
+## [[8]]
+## [1] 317 130 337 523 472
+## 
+## [[9]]
+## [1] 2366 6640 3073   97 1118
+## 
+## [[10]]
+## [1] 280  99 317 406  48
+## 
+## [[11]]
+## [1]  99 261 472  48 337
+## 
+## [[12]]
+## [1] 696 231  58 101 328
+## 
+## [[13]]
+## [1] 317 280 261  99 526
+## 
+## [[14]]
+## [1]  1844  8627 10089  1382 10155
+## 
+## [[15]]
+## [1] 526 406 231 280 261
+## 
+## [[16]]
+## [1]  231  538  645 1375  696
+## 
+## [[17]]
+## [1] 526 280  48 261 538
+## 
+## [[18]]
+## [1]  280  957 3868 1006 8627
+## 
+## [[19]]
+## [1]  406 2210 2837 1133 3003
+## 
+## [[20]]
+## [1]  406   99  526 3380 1290
+## 
+## [[21]]
+## [1]  696 1831  127 7911  657
+## 
+## [[22]]
+## [1] 1375 2144  317  964  991
+## 
+## [[23]]
+## [1] 472 280  48  99 261
+## 
+## [[24]]
+## [1] 10087  3888  1839  8776  9070
+## 
+## [[25]]
+## [1]  972    1  231 1203  280
+## 
+## [[26]]
+## [1] 2366 1296 2210  961 1368
+## 
+## [[27]]
+## [1] 261 526  99 523 406
+## 
+## [[28]]
+## [1]  527  631  975  742 1535
+## 
+## [[29]]
+## [1]  280  317 2057 3868  261
+## 
+## [[30]]
+## [1] 1368 1118  254   99 3003
+## 
+## [[31]]
+## [1]  526  261 1296  168 1265
+## 
+## [[32]]
+## [1]  538   48 2332 1375  964
+## 
+## [[33]]
+## [1]  317  280   48  231 1030
+## 
+## [[34]]
+## [1] 2366  261   48 8659 1368
+## 
+## [[35]]
+## [1] 1265 3886 1328 3380 1343
+## 
+## [[36]]
+## [1] 3425 1831 1338  476 3345
+## 
+## [[37]]
+## [1]  99  48 317 406 472
+## 
+## [[38]]
+## [1]  406  523  231 3886 4458
+## 
+## [[39]]
+## [1]  280 1367 1296  957 1031
+## 
+## [[40]]
+## [1] 280  48 523 261 231
+## 
+## [[41]]
+## [1] 280 526 261 127  99
+## 
+## [[42]]
+## [1]  317  957 2366 3425 1375
+## 
+## [[43]]
+## [1] 972 696   6 406 538
+## 
+## [[44]]
+## [1]  406  127 1343 1118 1265
+## 
+## [[45]]
+## [1] 2172   16 2057 3380 4063
+## 
+## [[46]]
+## [1]  961 2366   48  987 3886
+## 
+## [[47]]
+## [1]  99 526 524  45 406
+## 
+## [[48]]
+## [1]  991  526 3351  280  135
+## 
+## [[49]]
+## [1] 526  48 261 280 317
+## 
+## [[50]]
+## [1]  472  280 2837  963  961
+## 
+## [[51]]
+## [1]  99 280 406 961 526
+## 
+## [[52]]
+## [1]  499  117  261 1118 7911
+## 
+## [[53]]
+## [1]  696  961 2366   32  538
+## 
+## [[54]]
+## [1] 280 961 963  48 844
+## 
+## [[55]]
+## [1] 261 280  99 526 317
+## 
+## [[56]]
+## [1] 280 261  99  48 317
+## 
+## [[57]]
+## [1] 1265  553  662  538 1343
+## 
+## [[58]]
+## [1] 280  99 524 317 138
+## 
+## [[59]]
+## [1]   981  3177 10089  4279    48
+## 
+## [[60]]
+## [1] 1296  964 2906 3016  991
+## 
+## [[61]]
+## [1] 280 472 261  99  48
+## 
+## [[62]]
+## [1]  231  972 1133  538  101
+## 
+## [[63]]
+## [1] 406 526  99 524 317
+## 
+## [[64]]
+## [1]  696 2366 1296  280 2282
+## 
+## [[65]]
+## [1]  280  538  317 2210  526
+## 
+## [[66]]
+## [1]  280  696  961 2210 3886
+## 
+## [[67]]
+## [1] 526 538  99 127 121</code></pre>
+<pre class="r"><code>recommendations@itemLabels</code></pre>
+<pre><code>##    [1] &quot;Toy.Story&quot;                                                                &quot;Jumanji&quot;                                                                  &quot;Grumpier.Old.Men&quot;                                                        
+##    [4] &quot;Waiting.to.Exhale&quot;                                                        &quot;Father.of.the.Bride.Part.II&quot;                                              &quot;Heat&quot;                                                                    
+##    [7] &quot;Sabrina&quot;                                                                  &quot;Tom.and.Huck&quot;                                                             &quot;Sudden.Death&quot;                                                            
+##   [10] &quot;GoldenEye&quot;                                                                &quot;American.President&quot;                                                       &quot;Dracula..Dead.and.Loving.It&quot;                                             
+##   [13] &quot;Balto&quot;                                                                    &quot;Nixon&quot;                                                                    &quot;Cutthroat.Island&quot;                                                        
+##   [16] &quot;Casino&quot;                                                                   &quot;Sense.and.Sensibility&quot;                                                    &quot;Four.Rooms&quot;                                                              
+##   [19] &quot;Ace.Ventura..When.Nature.Calls&quot;                                           &quot;Money.Train&quot;                                                              &quot;Get.Shorty&quot;                                                              
+##   [22] &quot;Copycat&quot;                                                                  &quot;Assassins&quot;                                                                &quot;Powder&quot;                                                                  
+##   [25] &quot;Leaving.Las.Vegas&quot;                                                        &quot;Othello&quot;                                                                  &quot;Now.and.Then&quot;                                                            
+##   [28] &quot;Persuasion&quot;                                                               &quot;City.of.Lost.Children&quot;                                                    &quot;Shanghai.Triad&quot;                                                          
+##   [31] &quot;Dangerous.Minds&quot;                                                          &quot;Twelve.Monkeys&quot;                                                           &quot;Wings.of.Courage&quot;                                                        
+##   [34] &quot;Babe&quot;                                                                     &quot;Carrington&quot;                                                               &quot;Dead.Man.Walking&quot;                                                        
+##   [37] &quot;Clueless&quot;                                                                 &quot;Cry&quot;                                                                      &quot;Richard.III&quot;                                                             
+##   [40] &quot;Dead.Presidents&quot;                                                          &quot;Restoration&quot;                                                              &quot;Mortal.Kombat&quot;                                                           
+##   [43] &quot;To.Die.For&quot;                                                               &quot;How.to.Make.an.American.Quilt&quot;                                            &quot;Seven&quot;                                                                   
+##   [46] &quot;Pocahontas&quot;                                                               &quot;When.Night.Is.Falling&quot;                                                    &quot;Usual.Suspects&quot;                                                          
+##   [49] &quot;Mighty.Aphrodite&quot;                                                         &quot;Lamerica&quot;                                                                 &quot;Big.Green&quot;                                                               
+##   [52] &quot;Georgia&quot;                                                                  &quot;Home.for.the.Holidays&quot;                                                    &quot;Postman&quot;                                                                 
+##   [55] &quot;Confessional&quot;                                                             &quot;Indian.in.the.Cupboard&quot;                                                   &quot;Eye.for.an.Eye&quot;                                                          
+##   [58] &quot;Mr..Holland.s.Opus&quot;                                                       &quot;Don.t.Be.a.Menace.to.South.Central.While.Drinking.Your.Juice.in.the.Hood&quot; &quot;Two.if.by.Sea&quot;                                                           
+##   [61] &quot;Bio.Dome&quot;                                                                 &quot;Lawnmower.Man.2..Beyond.Cyberspace&quot;                                       &quot;French.Twist&quot;                                                            
+##   [64] &quot;Friday&quot;                                                                   &quot;From.Dusk.Till.Dawn&quot;                                                      &quot;Fair.Game&quot;                                                               
+##   [67] &quot;Kicking.and.Screaming&quot;                                                    &quot;MisÃ.rables&quot;                                                              &quot;Bed.of.Roses&quot;                                                            
+##   [70] &quot;Big.Bully&quot;                                                                &quot;Screamers&quot;                                                                &quot;Crossing.Guard&quot;                                                          
+##   [73] &quot;Juror&quot;                                                                    &quot;White.Balloon&quot;                                                            &quot;Things.to.Do.in.Denver.When.You.re.Dead&quot;                                 
+##   [76] &quot;Antonia.s.Line&quot;                                                           &quot;Once.Upon.a.Time....When.We.Were.Colored&quot;                                 &quot;Last.Summer.in.the.Hamptons&quot;                                             
+##   [79] &quot;Angels.and.Insects&quot;                                                       &quot;White.Squall&quot;                                                             &quot;Dunston.Checks.In&quot;                                                       
+##   [82] &quot;Black.Sheep&quot;                                                              &quot;Nick.of.Time&quot;                                                             &quot;Journey.of.August.King&quot;                                                  
+##   [85] &quot;Mary.Reilly&quot;                                                              &quot;Vampire.in.Brooklyn&quot;                                                      &quot;Beautiful.Girls&quot;                                                         
+##   [88] &quot;Broken.Arrow&quot;                                                             &quot;In.the.Bleak.Midwinter&quot;                                                   &quot;Hate&quot;                                                                    
+##   [91] &quot;City.Hall&quot;                                                                &quot;Bottle.Rocket&quot;                                                            &quot;Mr..Wrong&quot;                                                               
+##   [94] &quot;Unforgettable&quot;                                                            &quot;Happy.Gilmore&quot;                                                            &quot;Bridges.of.Madison.County&quot;                                               
+##   [97] &quot;Muppet.Treasure.Island&quot;                                                   &quot;Catwalk&quot;                                                                  &quot;Braveheart&quot;                                                              
+##  [100] &quot;Taxi.Driver&quot;                                                              &quot;Rumble.in.the.Bronx&quot;                                                      &quot;Before.and.After&quot;                                                        
+##  [103] &quot;Margaret.s.Museum&quot;                                                        &quot;Happiness.Is.in.the.Field&quot;                                                &quot;Anne.Frank.Remembered&quot;                                                   
+##  [106] &quot;Young.Poisoner.s.Handbook&quot;                                                &quot;If.Lucy.Fell&quot;                                                             &quot;Boys.of.St..Vincent&quot;                                                     
+##  [109] &quot;Boomerang&quot;                                                                &quot;Chungking.Express&quot;                                                        &quot;Star.Maker&quot;                                                              
+##  [112] &quot;Flirting.With.Disaster&quot;                                                   &quot;NeverEnding.Story.III&quot;                                                    &quot;Pie.in.the.Sky&quot;                                                          
+##  [115] &quot;Frankie.Starlight&quot;                                                        &quot;Jade&quot;                                                                     &quot;Down.Periscope&quot;                                                          
+##  [118] &quot;Man.of.the.Year&quot;                                                          &quot;Neon.Bible&quot;                                                               &quot;Up.Close.and.Personal&quot;                                                   
+##  [121] &quot;Birdcage&quot;                                                                 &quot;Brothers.McMullen&quot;                                                        &quot;Bad.Boys&quot;                                                                
+##  [124] &quot;Amazing.Panda.Adventure&quot;                                                  &quot;Basketball.Diaries&quot;                                                       &quot;Amateur&quot;                                                                 
+##  [127] &quot;Apollo.13&quot;                                                                &quot;Rob.Roy&quot;                                                                  &quot;Addiction&quot;                                                               
+##  [130] &quot;Batman.Forever&quot;                                                           &quot;Beauty.of.the.Day&quot;                                                        &quot;Beyond.Rangoon&quot;                                                          
+##  [133] &quot;Blue.in.the.Face&quot;                                                         &quot;Canadian.Bacon&quot;                                                           &quot;Casper&quot;                                                                  
+##  [136] &quot;Clockers&quot;                                                                 &quot;Congo&quot;                                                                    &quot;Crimson.Tide&quot;                                                            
+##  [139] &quot;Crumb&quot;                                                                    &quot;Desperado&quot;                                                                &quot;Devil.in.a.Blue.Dress&quot;                                                   
+##  [142] &quot;Die.Hard..With.a.Vengeance&quot;                                               &quot;Doom.Generation&quot;                                                          &quot;First.Knight&quot;                                                            
+##  [145] &quot;Free.Willy.2..The.Adventure.Home&quot;                                         &quot;Hackers&quot;                                                                  &quot;Jeffrey&quot;                                                                 
+##  [148] &quot;Johnny.Mnemonic&quot;                                                          &quot;Judge.Dredd&quot;                                                              &quot;Jury.Duty&quot;                                                               
+##  [151] &quot;Kids&quot;                                                                     &quot;Living.in.Oblivion&quot;                                                       &quot;Lord.of.Illusions&quot;                                                       
+##  [154] &quot;Love...Human.Remains&quot;                                                     &quot;Mad.Love&quot;                                                                 &quot;Mallrats&quot;                                                                
+##  [157] &quot;Mighty.Morphin.Power.Rangers..The.Movie&quot;                                  &quot;Moonlight.and.Valentino&quot;                                                  &quot;Mute.Witness&quot;                                                            
+##  [160] &quot;Nadja&quot;                                                                    &quot;Net&quot;                                                                      &quot;Nine.Months&quot;                                                             
+##  [163] &quot;Party.Girl&quot;                                                               &quot;Prophecy&quot;                                                                 &quot;Safe&quot;                                                                    
+##  [166] &quot;Scarlet.Letter&quot;                                                           &quot;Showgirls&quot;                                                                &quot;Smoke&quot;                                                                   
+##  [169] &quot;Something.to.Talk.About&quot;                                                  &quot;Species&quot;                                                                  &quot;Strange.Days&quot;                                                            
+##  [172] &quot;Umbrellas.of.Cherbourg&quot;                                                   &quot;Tie.That.Binds&quot;                                                           &quot;Three.Wishes&quot;                                                            
+##  [175] &quot;Total.Eclipse&quot;                                                            &quot;To.Wong.Foo&quot;                                                              &quot;Under.Siege.2..Dark.Territory&quot;                                           
+##  [178] &quot;Unstrung.Heroes&quot;                                                          &quot;Unzipped&quot;                                                                 &quot;Walk.in.the.Clouds&quot;                                                      
+##  [181] &quot;Waterworld&quot;                                                               &quot;White.Man.s.Burden&quot;                                                       &quot;Wild.Bill&quot;                                                               
+##  [184] &quot;Browning.Version&quot;                                                         &quot;Bushwhacked&quot;                                                              &quot;Burnt.by.the.Sun&quot;                                                        
+##  [187] &quot;Before.the.Rain&quot;                                                          &quot;Before.Sunrise&quot;                                                           &quot;Billy.Madison&quot;                                                           
+##  [190] &quot;Babysitter&quot;                                                               &quot;Boys.on.the.Side&quot;                                                         &quot;Cure&quot;                                                                    
+##  [193] &quot;Castle.Freak&quot;                                                             &quot;Circle.of.Friends&quot;                                                        &quot;Clerks&quot;                                                                  
+##  [196] &quot;Don.Juan.DeMarco&quot;                                                         &quot;Disclosure&quot;                                                               &quot;Dream.Man&quot;                                                               
+##  [199] &quot;Drop.Zone&quot;                                                                &quot;Destiny.Turns.on.the.Radio&quot;                                               &quot;Death.and.the.Maiden&quot;                                                    
+##  [202] &quot;Dolores.Claiborne&quot;                                                        &quot;Dumb...Dumber&quot;                                                            &quot;Eat.Drink.Man.Woman&quot;                                                     
+##  [205] &quot;Exotica&quot;                                                                  &quot;Exit.to.Eden&quot;                                                             &quot;Ed.Wood&quot;                                                                 
+##  [208] &quot;French.Kiss&quot;                                                              &quot;Forget.Paris&quot;                                                             &quot;Far.From.Home..The.Adventures.of.Yellow.Dog&quot;                             
+##  [211] &quot;Goofy.Movie&quot;                                                              &quot;Hideaway&quot;                                                                 &quot;Fluke&quot;                                                                   
+##  [214] &quot;Farinelli..il.castrato&quot;                                                   &quot;Gordy&quot;                                                                    &quot;The.Glass.Shield&quot;                                                        
+##  [217] &quot;Hoop.Dreams&quot;                                                              &quot;Heavenly.Creatures&quot;                                                       &quot;Houseguest&quot;                                                              
+##  [220] &quot;Immortal.Beloved&quot;                                                         &quot;Heavyweights&quot;                                                             &quot;Hunted&quot;                                                                  
+##  [223] &quot;I.Q.&quot;                                                                     &quot;Interview.with.the.Vampire..The.Vampire.Chronicles&quot;                       &quot;Jefferson.in.Paris&quot;                                                      
+##  [226] &quot;Jerky.Boys&quot;                                                               &quot;Junior&quot;                                                                   &quot;Just.Cause&quot;                                                              
+##  [229] &quot;Kid.in.King.Arthur.s.Court&quot;                                               &quot;Kiss.of.Death&quot;                                                            &quot;Star.Wars..Episode.IV...A.New.Hope&quot;                                      
+##  [232] &quot;Little.Women&quot;                                                             &quot;Little.Princess&quot;                                                          &quot;Ladybird.Ladybird&quot;                                                       
+##  [235] &quot;Like.Water.for.Chocolate&quot;                                                 &quot;Legends.of.the.Fall&quot;                                                      &quot;Major.Payne&quot;                                                             
+##  [238] &quot;Little.Odessa&quot;                                                            &quot;My.Crazy.Life&quot;                                                            &quot;Love.Affair&quot;                                                             
+##  [241] &quot;Losing.Isaiah&quot;                                                            &quot;Madness.of.King.George&quot;                                                   &quot;Mary.Shelley.s.Frankenstein&quot;                                             
+##  [244] &quot;Man.of.the.House&quot;                                                         &quot;Mixed.Nuts&quot;                                                               &quot;Milk.Money&quot;                                                              
+##  [247] &quot;Miracle.on.34th.Street&quot;                                                   &quot;Miami.Rhapsody&quot;                                                           &quot;My.Family&quot;                                                               
+##  [250] &quot;Murder.in.the.First&quot;                                                      &quot;Nobody.s.Fool&quot;                                                            &quot;Nell&quot;                                                                    
+##  [253] &quot;New.Jersey.Drive&quot;                                                         &quot;Natural.Born.Killers&quot;                                                     &quot;Only.You&quot;                                                                
+##  [256] &quot;Once.Were.Warriors&quot;                                                       &quot;Poison.Ivy.II&quot;                                                            &quot;Outbreak&quot;                                                                
+##  [259] &quot;LÃ.on..The.Professional&quot;                                                  &quot;Perez.Family&quot;                                                             &quot;Pulp.Fiction&quot;                                                            
+##  [262] &quot;Pushing.Hands&quot;                                                            &quot;Priest&quot;                                                                   &quot;Quiz.Show&quot;                                                               
+##  [265] &quot;Picture.Bride&quot;                                                            &quot;Queen.Margot&quot;                                                             &quot;Quick.and.the.Dead&quot;                                                      
+##  [268] &quot;Roommates&quot;                                                                &quot;Ready.to.Wear&quot;                                                            &quot;Three.Colors..Red&quot;                                                       
+##  [271] &quot;Three.Colors..Blue&quot;                                                       &quot;Three.Colors..White&quot;                                                      &quot;Red.Firecracker&quot;                                                         
+##  [274] &quot;Stuart.Saves.His.Family&quot;                                                  &quot;Swan.Princess&quot;                                                            &quot;Secret.of.Roan.Inish&quot;                                                    
+##  [277] &quot;Specialist&quot;                                                               &quot;Stargate&quot;                                                                 &quot;Santa.Clause&quot;                                                            
+##  [280] &quot;Shawshank.Redemption&quot;                                                     &quot;Shallow.Grave&quot;                                                            &quot;Suture&quot;                                                                  
+##  [283] &quot;Strawberry.and.Chocolate&quot;                                                 &quot;Swimming.with.Sharks&quot;                                                     &quot;Sum.of.Us&quot;                                                               
+##  [286] &quot;National.Lampoon.s.Senior.Trip&quot;                                           &quot;To.Live&quot;                                                                  &quot;Tank.Girl&quot;                                                               
+##  [289] &quot;Tales.from.the.Crypt.Presents..Demon.Knight&quot;                              &quot;Star.Trek..Generations&quot;                                                   &quot;Tales.from.the.Hood&quot;                                                     
+##  [292] &quot;Tom...Viv&quot;                                                                &quot;Village.of.the.Damned&quot;                                                    &quot;Tommy.Boy&quot;                                                               
+##  [295] &quot;Vanya.on.42nd.Street&quot;                                                     &quot;Underneath&quot;                                                               &quot;Walking.Dead&quot;                                                            
+##  [298] &quot;What.s.Eating.Gilbert.Grape&quot;                                              &quot;Virtuosity&quot;                                                               &quot;While.You.Were.Sleeping&quot;                                                 
+##  [301] &quot;War&quot;                                                                      &quot;Double.Happiness&quot;                                                         &quot;Muriel.s.Wedding&quot;                                                        
+##  [304] &quot;Baby.Sitters.Club&quot;                                                        &quot;Ace.Ventura..Pet.Detective&quot;                                               &quot;Adventures.of.Priscilla&quot;                                                 
+##  [307] &quot;Backbeat&quot;                                                                 &quot;Bitter.Moon&quot;                                                              &quot;Bullets.Over.Broadway&quot;                                                   
+##  [310] &quot;Clear.and.Present.Danger&quot;                                                 &quot;Client&quot;                                                                   &quot;Corrina&quot;                                                                 
+##  [313] &quot;Crooklyn&quot;                                                                 &quot;Crow&quot;                                                                     &quot;Cobb&quot;                                                                    
+##  [316] &quot;Flintstones&quot;                                                              &quot;Forrest.Gump&quot;                                                             &quot;Four.Weddings.and.a.Funeral&quot;                                             
+##  [319] &quot;Higher.Learning&quot;                                                          &quot;I.Love.Trouble&quot;                                                           &quot;It.Could.Happen.to.You&quot;                                                  
+##  [322] &quot;Jungle.Book&quot;                                                              &quot;Wonderful&quot;                                                                &quot;Lion.King&quot;                                                               
+##  [325] &quot;Little.Buddha&quot;                                                            &quot;Wes.Craven.s.New.Nightmare&quot;                                               &quot;Mask&quot;                                                                    
+##  [328] &quot;Maverick&quot;                                                                 &quot;Mrs..Parker.and.the.Vicious.Circle&quot;                                       &quot;Naked.Gun.33.1.3..The.Final.Insult&quot;                                      
+##  [331] &quot;Paper&quot;                                                                    &quot;Reality.Bites&quot;                                                            &quot;Red.Rock.West&quot;                                                           
+##  [334] &quot;Richie.Rich&quot;                                                              &quot;Safe.Passage&quot;                                                             &quot;River.Wild&quot;                                                              
+##  [337] &quot;Speed&quot;                                                                    &quot;Speechless&quot;                                                               &quot;Timecop&quot;                                                                 
+##  [340] &quot;True.Lies&quot;                                                                &quot;When.a.Man.Loves.a.Woman&quot;                                                 &quot;Wolf&quot;                                                                    
+##  [343] &quot;Wyatt.Earp&quot;                                                               &quot;Bad.Company&quot;                                                              &quot;Man.of.No.Importance&quot;                                                    
+##  [346] &quot;S.F.W.&quot;                                                                   &quot;Low.Down.Dirty.Shame&quot;                                                     &quot;Boys.Life&quot;                                                               
+##  [349] &quot;Colonel.Chabert&quot;                                                          &quot;Faster.Pussycat..Kill..Kill.&quot;                                             &quot;Jason.s.Lyric&quot;                                                           
+##  [352] &quot;Secret.Adventures.of.Tom.Thumb&quot;                                           &quot;Street.Fighter&quot;                                                           &quot;Fall.Time&quot;                                                               
+##  [355] &quot;Brother.Minister..The.Assassination.of.Malcolm.X&quot;                         &quot;Highlander.III..The.Sorcerer&quot;                                             &quot;In.the.Mouth.of.Madness&quot;                                                 
+##  [358] &quot;X8.Seconds&quot;                                                               &quot;Above.the.Rim&quot;                                                            &quot;Addams.Family.Values&quot;                                                    
+##  [361] &quot;Age.of.Innocence&quot;                                                         &quot;Airheads&quot;                                                                 &quot;Air.Up.There&quot;                                                            
+##  [364] &quot;Another.Stakeout&quot;                                                         &quot;Bad.Girls&quot;                                                                &quot;Barcelona&quot;                                                               
+##  [367] &quot;Being.Human&quot;                                                              &quot;Beverly.Hillbillies&quot;                                                      &quot;Beverly.Hills.Cop.III&quot;                                                   
+##  [370] &quot;Black.Beauty&quot;                                                             &quot;Blink&quot;                                                                    &quot;Blown.Away&quot;                                                              
+##  [373] &quot;Blue.Chips&quot;                                                               &quot;Blue.Sky&quot;                                                                 &quot;Body.Snatchers&quot;                                                          
+##  [376] &quot;Boxing.Helena&quot;                                                            &quot;Bronx.Tale&quot;                                                               &quot;Cabin.Boy&quot;                                                               
+##  [379] &quot;Calendar.Girl&quot;                                                            &quot;Carlito.s.Way&quot;                                                            &quot;City.Slickers.II..The.Legend.of.Curly.s.Gold&quot;                            
+##  [382] &quot;Clean.Slate&quot;                                                              &quot;Cliffhanger&quot;                                                              &quot;Coneheads&quot;                                                               
+##  [385] &quot;Color.of.Night&quot;                                                           &quot;Cops.and.Robbersons&quot;                                                      &quot;Cowboy.Way&quot;                                                              
+##  [388] &quot;Dangerous.Game&quot;                                                           &quot;Dave&quot;                                                                     &quot;Dazed.and.Confused&quot;                                                      
+##  [391] &quot;Demolition.Man&quot;                                                           &quot;Endless.Summer.2&quot;                                                         &quot;Even.Cowgirls.Get.the.Blues&quot;                                             
+##  [394] &quot;Fatal.Instinct&quot;                                                           &quot;Farewell.My.Concubine&quot;                                                    &quot;Favor&quot;                                                                   
+##  [397] &quot;Fearless&quot;                                                                 &quot;Fear.of.a.Black.Hat&quot;                                                      &quot;With.Honors&quot;                                                             
+##  [400] &quot;Flesh.and.Bone&quot;                                                           &quot;Widows..Peak&quot;                                                             &quot;For.Love.or.Money&quot;                                                       
+##  [403] &quot;Firm&quot;                                                                     &quot;Free.Willy&quot;                                                               &quot;Fresh&quot;                                                                   
+##  [406] &quot;Fugitive&quot;                                                                 &quot;Geronimo..An.American.Legend&quot;                                             &quot;Getaway&quot;                                                                 
+##  [409] &quot;Getting.Even.with.Dad&quot;                                                    &quot;Go.Fish&quot;                                                                  &quot;Guilty.as.Sin&quot;                                                           
+##  [412] &quot;Hard.Target&quot;                                                              &quot;Heaven...Earth&quot;                                                           &quot;Hot.Shots..Part.Deux&quot;                                                    
+##  [415] &quot;Live.Nude.Girls&quot;                                                          &quot;Englishman.Who.Went.Up.a.Hill.But.Came.Down.a.Mountain&quot;                   &quot;House.of.the.Spirits&quot;                                                    
+##  [418] &quot;House.Party.3&quot;                                                            &quot;Hudsucker.Proxy&quot;                                                          &quot;I.ll.Do.Anything&quot;                                                        
+##  [421] &quot;In.the.Army.Now&quot;                                                          &quot;In.the.Line.of.Fire&quot;                                                      &quot;In.the.Name.of.the.Father&quot;                                               
+##  [424] &quot;Inkwell&quot;                                                                  &quot;What.s.Love.Got.to.Do.with.It.&quot;                                           &quot;Judgment.Night&quot;                                                          
+##  [427] &quot;Jurassic.Park&quot;                                                            &quot;Kalifornia&quot;                                                               &quot;Killing.Zoe&quot;                                                             
+##  [430] &quot;King.of.the.Hill&quot;                                                         &quot;Last.Action.Hero&quot;                                                         &quot;Life.with.Mikey&quot;                                                         
+##  [433] &quot;Lightning.Jack&quot;                                                           &quot;M..Butterfly&quot;                                                             &quot;Made.in.America&quot;                                                         
+##  [436] &quot;Malice&quot;                                                                   &quot;Man.Without.a.Face&quot;                                                       &quot;Manhattan.Murder.Mystery&quot;                                                
+##  [439] &quot;Menace.II.Society&quot;                                                        &quot;Executive.Decision&quot;                                                       &quot;In.the.Realm.of.the.Senses&quot;                                              
+##  [442] &quot;What.Happened.Was...&quot;                                                     &quot;Much.Ado.About.Nothing&quot;                                                   &quot;Mr..Jones&quot;                                                               
+##  [445] &quot;Mr..Wonderful&quot;                                                            &quot;Mrs..Doubtfire&quot;                                                           &quot;Naked&quot;                                                                   
+##  [448] &quot;Next.Karate.Kid&quot;                                                          &quot;No.Escape&quot;                                                                &quot;North&quot;                                                                   
+##  [451] &quot;Orlando&quot;                                                                  &quot;Perfect.World&quot;                                                            &quot;Philadelphia&quot;                                                            
+##  [454] &quot;Piano&quot;                                                                    &quot;Poetic.Justice&quot;                                                           &quot;Program&quot;                                                                 
+##  [457] &quot;Puppet.Masters&quot;                                                           &quot;Radioland.Murders&quot;                                                        &quot;Ref&quot;                                                                     
+##  [460] &quot;Remains.of.the.Day&quot;                                                       &quot;Renaissance.Man&quot;                                                          &quot;Rising.Sun&quot;                                                              
+##  [463] &quot;Road.to.Wellville&quot;                                                        &quot;RoboCop.3&quot;                                                                &quot;Robin.Hood..Men.in.Tights&quot;                                               
+##  [466] &quot;Romeo.Is.Bleeding&quot;                                                        &quot;Romper.Stomper&quot;                                                           &quot;Ruby.in.Paradise&quot;                                                        
+##  [469] &quot;Rudy&quot;                                                                     &quot;Saint.of.Fort.Washington&quot;                                                 &quot;Savage.Nights&quot;                                                           
+##  [472] &quot;Schindler.s.List&quot;                                                         &quot;Scout&quot;                                                                    &quot;Searching.for.Bobby.Fischer&quot;                                             
+##  [475] &quot;Secret.Garden&quot;                                                            &quot;Serial.Mom&quot;                                                               &quot;Shadow&quot;                                                                  
+##  [478] &quot;Shadowlands&quot;                                                              &quot;Short.Cuts&quot;                                                               &quot;Simple.Twist.of.Fate&quot;                                                    
+##  [481] &quot;Sirens&quot;                                                                   &quot;Six.Degrees.of.Separation&quot;                                                &quot;Sleepless.in.Seattle&quot;                                                    
+##  [484] &quot;Sliver&quot;                                                                   &quot;Blade.Runner&quot;                                                             &quot;Son.in.Law&quot;                                                              
+##  [487] &quot;So.I.Married.an.Axe.Murderer&quot;                                             &quot;Striking.Distance&quot;                                                        &quot;Harem&quot;                                                                   
+##  [490] &quot;Super.Mario.Bros.&quot;                                                        &quot;Surviving.the.Game&quot;                                                       &quot;Terminal.Velocity&quot;                                                       
+##  [493] &quot;Thirty.Two.Short.Films.About.Glenn.Gould&quot;                                 &quot;Threesome&quot;                                                                &quot;Nightmare.Before.Christmas&quot;                                              
+##  [496] &quot;Three.Musketeers&quot;                                                         &quot;Tombstone&quot;                                                                &quot;Trial.by.Jury&quot;                                                           
+##  [499] &quot;True.Romance&quot;                                                             &quot;War.Room&quot;                                                                 &quot;Pagemaster&quot;                                                              
+##  [502] &quot;Beans.of.Egypt&quot;                                                           &quot;Welcome.to.the.Dollhouse&quot;                                                 &quot;Germinal&quot;                                                                
+##  [505] &quot;Cronos&quot;                                                                   &quot;Naked.in.New.York&quot;                                                        &quot;Kika&quot;                                                                    
+##  [508] &quot;Bhaji.on.the.Beach&quot;                                                       &quot;Little.Big.League&quot;                                                        &quot;Slingshot&quot;                                                               
+##  [511] &quot;Wedding.Gift&quot;                                                             &quot;Ciao&quot;                                                                     &quot;Spanking.the.Monkey&quot;                                                     
+##  [514] &quot;Little.Rascals&quot;                                                           &quot;Andre&quot;                                                                    &quot;Princess.Caraboo&quot;                                                        
+##  [517] &quot;Celluloid.Closet&quot;                                                         &quot;Dear.Diary&quot;                                                               &quot;Brady.Bunch.Movie&quot;                                                       
+##  [520] &quot;Home.Alone&quot;                                                               &quot;Ghost&quot;                                                                    &quot;Aladdin&quot;                                                                 
+##  [523] &quot;Terminator.2..Judgment.Day&quot;                                               &quot;Dances.with.Wolves&quot;                                                       &quot;Batman&quot;                                                                  
+##  [526] &quot;Silence.of.the.Lambs&quot;                                                     &quot;Snow.White.and.the.Seven.Dwarfs&quot;                                          &quot;Beauty.and.the.Beast&quot;                                                    
+##  [529] &quot;Pinocchio&quot;                                                                &quot;Pretty.Woman&quot;                                                             &quot;Wild.Bunch&quot;                                                              
+##  [532] &quot;Love.and.a..45&quot;                                                           &quot;Wooden.Man.s.Bride&quot;                                                       &quot;Great.Day.in.Harlem&quot;                                                     
+##  [535] &quot;Bye.Bye&quot;                                                                  &quot;One.Fine.Day&quot;                                                             &quot;Candyman..Farewell.to.the.Flesh&quot;                                         
+##  [538] &quot;Fargo&quot;                                                                    &quot;Homeward.Bound.II..Lost.in.San.Francisco&quot;                                 &quot;Heavy.Metal&quot;                                                             
+##  [541] &quot;Hellraiser..Bloodline&quot;                                                    &quot;Pallbearer&quot;                                                               &quot;Jane.Eyre&quot;                                                               
+##  [544] &quot;Loaded&quot;                                                                   &quot;Bread.and.Chocolate&quot;                                                      &quot;Aristocats&quot;                                                              
+##  [547] &quot;Flower.of.My.Secret&quot;                                                      &quot;Two.Much&quot;                                                                 &quot;Ed&quot;                                                                      
+##  [550] &quot;My.Favorite.Season&quot;                                                       &quot;Thin.Line.Between.Love.and.Hate&quot;                                          &quot;Last.Supper&quot;                                                             
+##  [553] &quot;Primal.Fear&quot;                                                              &quot;Carried.Away&quot;                                                             &quot;All.Dogs.Go.to.Heaven.2&quot;                                                 
+##  [556] &quot;Land.and.Freedom&quot;                                                         &quot;Denise.Calls.Up&quot;                                                          &quot;Theodore.Rex&quot;                                                            
+##  [559] &quot;Family.Thing&quot;                                                             &quot;Sgt..Bilko&quot;                                                               &quot;Jack.and.Sarah&quot;                                                          
+##  [562] &quot;Girl.6&quot;                                                                   &quot;Diabolique&quot;                                                               &quot;Courage.Under.Fire&quot;                                                      
+##  [565] &quot;Mission..Impossible&quot;                                                      &quot;Cold.Fever&quot;                                                               &quot;Moll.Flanders&quot;                                                           
+##  [568] &quot;Dragonheart&quot;                                                              &quot;Eddie&quot;                                                                    &quot;Purple.Noon&quot;                                                             
+##  [571] &quot;August&quot;                                                                   &quot;James.and.the.Giant.Peach&quot;                                                &quot;Fear&quot;                                                                    
+##  [574] &quot;Kids.in.the.Hall..Brain.Candy&quot;                                            &quot;Faithful&quot;                                                                 &quot;Underground&quot;                                                             
+##  [577] &quot;Bloodsport.2&quot;                                                             &quot;Song.of.the.Little.Road&quot;                                                  &quot;World.of.Apu&quot;                                                            
+##  [580] &quot;Mystery.Science.Theater.3000..The.Movie&quot;                                  &quot;Space.Jam&quot;                                                                &quot;Barbarella&quot;                                                              
+##  [583] &quot;Some.Folks.Call.It.a.Sling.Blade&quot;                                         &quot;Run.of.the.Country&quot;                                                       &quot;Alphaville&quot;                                                              
+##  [586] &quot;Coup.de.torchon&quot;                                                          &quot;It.s.My.Party&quot;                                                            &quot;Operation.Dumbo.Drop&quot;                                                    
+##  [589] &quot;Promise&quot;                                                                  &quot;Mrs..Winterbourne&quot;                                                        &quot;Solo&quot;                                                                    
+##  [592] &quot;Substitute&quot;                                                               &quot;True.Crime&quot;                                                               &quot;Feeling.Minnesota&quot;                                                       
+##  [595] &quot;Angus&quot;                                                                    &quot;Faces&quot;                                                                    &quot;Boys&quot;                                                                    
+##  [598] &quot;Quest&quot;                                                                    &quot;Cosi&quot;                                                                     &quot;Sunset.Park&quot;                                                             
+##  [601] &quot;Mulholland.Falls&quot;                                                         &quot;Truth.About.Cats...Dogs&quot;                                                  &quot;Oliver...Company&quot;                                                        
+##  [604] &quot;Celtic.Pride&quot;                                                             &quot;Flipper&quot;                                                                  &quot;Captives&quot;                                                                
+##  [607] &quot;Dead.Man&quot;                                                                 &quot;Horseman.on.the.Roof&quot;                                                     &quot;Switchblade.Sisters&quot;                                                     
+##  [610] &quot;Visitors&quot;                                                                 &quot;Multiplicity&quot;                                                             &quot;Wallace...Gromit..The.Best.of.Aardman.Animation&quot;                         
+##  [613] &quot;Haunted.World.of.Edward.D..Wood.Jr.&quot;                                      &quot;Craft&quot;                                                                    &quot;Great.White.Hype&quot;                                                        
+##  [616] &quot;Last.Dance&quot;                                                               &quot;Cold.Comfort.Farm&quot;                                                        &quot;Heaven.s.Prisoners&quot;                                                      
+##  [619] &quot;Original.Gangstas&quot;                                                        &quot;Rock&quot;                                                                     &quot;Cemetery.Man&quot;                                                            
+##  [622] &quot;Twister&quot;                                                                  &quot;Barb.Wire&quot;                                                                &quot;Ghost.in.the.Shell&quot;                                                      
+##  [625] &quot;Thinner&quot;                                                                  &quot;Spy.Hard&quot;                                                                 &quot;Wallace...Gromit..A.Close.Shave&quot;                                         
+##  [628] &quot;Force.of.Evil&quot;                                                            &quot;Stupids&quot;                                                                  &quot;Arrival&quot;                                                                 
+##  [631] &quot;Dr..Strangelove.or..How.I.Learned.to.Stop.Worrying.and.Love.the.Bomb&quot;     &quot;Month.by.the.Lake&quot;                                                        &quot;Gold.Diggers..The.Secret.of.Bear.Mountain&quot;                               
+##  [634] &quot;Kim&quot;                                                                      &quot;Ashes.of.Time&quot;                                                            &quot;Maya.Lin..A.Strong.Clear.Vision&quot;                                         
+##  [637] &quot;Stalingrad&quot;                                                               &quot;Phantom&quot;                                                                  &quot;Striptease&quot;                                                              
+##  [640] &quot;Heavy&quot;                                                                    &quot;Jack&quot;                                                                     &quot;I.Shot.Andy.Warhol&quot;                                                      
+##  [643] &quot;Grass.Harp&quot;                                                               &quot;Marlene.Dietrich..Shadow.and.Light&quot;                                       &quot;Trainspotting&quot;                                                           
+##  [646] &quot;X.Til.There.Was.You&quot;                                                      &quot;Independence.Day&quot;                                                         &quot;Stealing.Beauty&quot;                                                         
+##  [649] &quot;Fan&quot;                                                                      &quot;Hunchback.of.Notre.Dame&quot;                                                  &quot;Cable.Guy&quot;                                                               
+##  [652] &quot;Kingpin&quot;                                                                  &quot;Eraser&quot;                                                                   &quot;Nutty.Professor&quot;                                                         
+##  [655] &quot;Daylight&quot;                                                                 &quot;Frighteners&quot;                                                              &quot;Lone.Star&quot;                                                               
+##  [658] &quot;Harriet.the.Spy&quot;                                                          &quot;Phenomenon&quot;                                                               &quot;Walking.and.Talking&quot;                                                     
+##  [661] &quot;She.s.the.One&quot;                                                            &quot;Time.to.Kill&quot;                                                             &quot;American.Buffalo&quot;                                                        
+##  [664] &quot;Rendezvous.in.Paris&quot;                                                      &quot;Alaska&quot;                                                                   &quot;Fled&quot;                                                                    
+##  [667] &quot;Kazaam&quot;                                                                   &quot;Larger.Than.Life&quot;                                                         &quot;Very.Brady.Sequel&quot;                                                       
+##  [670] &quot;Collector&quot;                                                                &quot;Kaspar.Hauser&quot;                                                            &quot;Convent&quot;                                                                 
+##  [673] &quot;Adventures.of.Pinocchio&quot;                                                  &quot;Joe.s.Apartment&quot;                                                          &quot;First.Wives.Club&quot;                                                        
+##  [676] &quot;Stonewall&quot;                                                                &quot;Ransom&quot;                                                                   &quot;High.School.High&quot;                                                        
+##  [679] &quot;Phat.Beach&quot;                                                               &quot;Foxfire&quot;                                                                  &quot;Chain.Reaction&quot;                                                          
+##  [682] &quot;Matilda&quot;                                                                  &quot;Emma&quot;                                                                     &quot;Crow..City.of.Angels&quot;                                                    
+##  [685] &quot;House.Arrest&quot;                                                             &quot;Eyes.Without.a.Face&quot;                                                      &quot;Tales.from.the.Crypt.Presents..Bordello.of.Blood&quot;                        
+##  [688] &quot;Story.of.Xinghua&quot;                                                         &quot;Flirt&quot;                                                                    &quot;Spitfire.Grill&quot;                                                          
+##  [691] &quot;Escape.from.L.A.&quot;                                                         &quot;Cyclo&quot;                                                                    &quot;Basquiat&quot;                                                                
+##  [694] &quot;Tin.Cup&quot;                                                                  &quot;Ballad.of.Narayama&quot;                                                       &quot;Godfather&quot;                                                               
+##  [697] &quot;Supercop&quot;                                                                 &quot;Manny...Lo&quot;                                                               &quot;Small.Faces&quot;                                                             
+##  [700] &quot;Bound&quot;                                                                    &quot;Carpool&quot;                                                                  &quot;Death.in.Brunswick&quot;                                                      
+##  [703] &quot;Kansas.City&quot;                                                              &quot;Gone.Fishin.&quot;                                                             &quot;Nothing.to.Lose&quot;                                                         
+##  [706] &quot;Supercop.2&quot;                                                               &quot;Relic&quot;                                                                    &quot;Island.of.Dr..Moreau&quot;                                                    
+##  [709] &quot;First.Kid&quot;                                                                &quot;Trigger.Effect&quot;                                                           &quot;Bogus&quot;                                                                   
+##  [712] &quot;Bulletproof&quot;                                                              &quot;Land.Before.Time.III..The.Time.of.the.Great.Giving&quot;                       &quot;Baton.Rouge&quot;                                                             
+##  [715] &quot;Halloween..The.Curse.of.Michael.Myers&quot;                                    &quot;Twelfth.Night&quot;                                                            &quot;Mother.Night&quot;                                                            
+##  [718] &quot;Wild.Reeds&quot;                                                               &quot;For.Whom.the.Bell.Tolls&quot;                                                  &quot;Philadelphia.Story&quot;                                                      
+##  [721] &quot;Singin..in.the.Rain&quot;                                                      &quot;American.in.Paris&quot;                                                        &quot;Funny.Face&quot;                                                              
+##  [724] &quot;Breakfast.at.Tiffany.s&quot;                                                   &quot;Vertigo&quot;                                                                  &quot;Rear.Window&quot;                                                             
+##  [727] &quot;It.Happened.One.Night&quot;                                                    &quot;Gaslight&quot;                                                                 &quot;Gay.Divorcee&quot;                                                            
+##  [730] &quot;North.by.Northwest&quot;                                                       &quot;Apartment&quot;                                                                &quot;Some.Like.It.Hot&quot;                                                        
+##  [733] &quot;Charade&quot;                                                                  &quot;Casablanca&quot;                                                               &quot;Maltese.Falcon&quot;                                                          
+##  [736] &quot;My.Fair.Lady&quot;                                                             &quot;Sabrina.1&quot;                                                                &quot;Roman.Holiday&quot;                                                           
+##  [739] &quot;Little.Princess.1&quot;                                                        &quot;Meet.Me.in.St..Louis&quot;                                                     &quot;Wizard.of.Oz&quot;                                                            
+##  [742] &quot;Gone.with.the.Wind&quot;                                                       &quot;My.Favorite.Year&quot;                                                         &quot;Sunset.Blvd.&quot;                                                            
+##  [745] &quot;Citizen.Kane&quot;                                                             &quot;X2001..A.Space.Odyssey&quot;                                                   &quot;All.About.Eve&quot;                                                           
+##  [748] &quot;Women&quot;                                                                    &quot;Rebecca&quot;                                                                  &quot;Foreign.Correspondent&quot;                                                   
+##  [751] &quot;Notorious&quot;                                                                &quot;Spellbound&quot;                                                               &quot;Affair.to.Remember&quot;                                                      
+##  [754] &quot;To.Catch.a.Thief&quot;                                                         &quot;Father.of.the.Bride&quot;                                                      &quot;Band.Wagon&quot;                                                              
+##  [757] &quot;Ninotchka&quot;                                                                &quot;Love.in.the.Afternoon&quot;                                                    &quot;Gigi&quot;                                                                    
+##  [760] &quot;Reluctant.Debutante&quot;                                                      &quot;Adventures.of.Robin.Hood&quot;                                                 &quot;Mark.of.Zorro&quot;                                                           
+##  [763] &quot;Laura&quot;                                                                    &quot;Ghost.and.Mrs..Muir&quot;                                                      &quot;Lost.Horizon&quot;                                                            
+##  [766] &quot;Top.Hat&quot;                                                                  &quot;To.Be.or.Not.to.Be&quot;                                                       &quot;My.Man.Godfrey&quot;                                                          
+##  [769] &quot;Giant&quot;                                                                    &quot;East.of.Eden&quot;                                                             &quot;Thin.Man&quot;                                                                
+##  [772] &quot;His.Girl.Friday&quot;                                                          &quot;Around.the.World.in.80.Days&quot;                                              &quot;It.s.a.Wonderful.Life&quot;                                                   
+##  [775] &quot;Mr..Smith.Goes.to.Washington&quot;                                             &quot;Bringing.Up.Baby&quot;                                                         &quot;Penny.Serenade&quot;                                                          
+##  [778] &quot;Scarlet.Letter.1&quot;                                                         &quot;Lady.of.Burlesque&quot;                                                        &quot;Of.Human.Bondage&quot;                                                        
+##  [781] &quot;Angel.on.My.Shoulder&quot;                                                     &quot;Little.Lord.Fauntleroy&quot;                                                   &quot;Inspector.General&quot;                                                       
+##  [784] &quot;Angel.and.the.Badman&quot;                                                     &quot;X39.Steps&quot;                                                                &quot;Walk.in.the.Sun&quot;                                                         
+##  [787] &quot;Outlaw&quot;                                                                   &quot;Night.of.the.Living.Dead&quot;                                                 &quot;African.Queen&quot;                                                           
+##  [790] &quot;Beat.the.Devil&quot;                                                           &quot;Cat.on.a.Hot.Tin.Roof&quot;                                                    &quot;Last.Time.I.Saw.Paris&quot;                                                   
+##  [793] &quot;Meet.John.Doe&quot;                                                            &quot;Algiers&quot;                                                                  &quot;Farewell.to.Arms&quot;                                                        
+##  [796] &quot;Nothing.Personal&quot;                                                         &quot;Yes&quot;                                                                      &quot;Dangerous.Ground&quot;                                                        
+##  [799] &quot;Picnic&quot;                                                                   &quot;Fly.Away.Home&quot;                                                            &quot;Bliss&quot;                                                                   
+##  [802] &quot;Grace.of.My.Heart&quot;                                                        &quot;Maximum.Risk&quot;                                                             &quot;Michael.Collins&quot;                                                         
+##  [805] &quot;Infinity&quot;                                                                 &quot;Big.Night&quot;                                                                &quot;Last.Man.Standing&quot;                                                       
+##  [808] &quot;Caught&quot;                                                                   &quot;Set.It.Off&quot;                                                               &quot;X2.Days.in.the.Valley&quot;                                                   
+##  [811] &quot;Curdled&quot;                                                                  &quot;Extreme.Measures&quot;                                                         &quot;Glimmer.Man&quot;                                                             
+##  [814] &quot;D3..The.Mighty.Ducks&quot;                                                     &quot;Chamber&quot;                                                                  &quot;Apple.Dumpling.Gang&quot;                                                     
+##  [817] &quot;Davy.Crockett&quot;                                                            &quot;Escape.to.Witch.Mountain&quot;                                                 &quot;Love.Bug&quot;                                                                
+##  [820] &quot;Herbie.Rides.Again&quot;                                                       &quot;Old.Yeller&quot;                                                               &quot;Parent.Trap&quot;                                                             
+##  [823] &quot;Pollyanna&quot;                                                                &quot;Homeward.Bound..The.Incredible.Journey&quot;                                   &quot;Shaggy.Dog&quot;                                                              
+##  [826] &quot;Swiss.Family.Robinson&quot;                                                    &quot;That.Darn.Cat.&quot;                                                           &quot;X20&quot;                                                                     
+##  [829] &quot;Cool.Runnings&quot;                                                            &quot;Angels.in.the.Outfield&quot;                                                   &quot;Cinderella&quot;                                                              
+##  [832] &quot;Winnie.the.Pooh.and.the.Blustery.Day&quot;                                     &quot;Three.Caballeros&quot;                                                         &quot;Sword.in.the.Stone&quot;                                                      
+##  [835] &quot;Robin.Hood..Prince.of.Thieves&quot;                                            &quot;Mary.Poppins&quot;                                                             &quot;Dumbo&quot;                                                                   
+##  [838] &quot;Pete.s.Dragon&quot;                                                            &quot;Bedknobs.and.Broomsticks&quot;                                                 &quot;Alice.in.Wonderland&quot;                                                     
+##  [841] &quot;Fox.and.the.Hound&quot;                                                        &quot;Freeway&quot;                                                                  &quot;Sound.of.Music&quot;                                                          
+##  [844] &quot;Die.Hard&quot;                                                                 &quot;Lawnmower.Man&quot;                                                            &quot;Unhook.the.Stars&quot;                                                        
+##  [847] &quot;Secret.Agent&quot;                                                             &quot;Secrets...Lies&quot;                                                           &quot;That.Thing.You.Do.&quot;                                                      
+##  [850] &quot;To.Gillian.on.Her.37th.Birthday&quot;                                          &quot;Surviving.Picasso&quot;                                                        &quot;Beautiful.Thing&quot;                                                         
+##  [853] &quot;Long.Kiss.Goodnight&quot;                                                      &quot;Ghost.and.the.Darkness&quot;                                                   &quot;Looking.for.Richard&quot;                                                     
+##  [856] &quot;Trees.Lounge&quot;                                                             &quot;Normal.Life&quot;                                                              &quot;Get.on.the.Bus&quot;                                                          
+##  [859] &quot;Jude&quot;                                                                     &quot;Everyone.Says.I.Love.You&quot;                                                 &quot;Bitter.Sugar&quot;                                                            
+##  [862] &quot;William.Shakespeare.s.Romeo...Juliet&quot;                                     &quot;Swingers&quot;                                                                 &quot;Sleepers&quot;                                                                
+##  [865] &quot;Johns&quot;                                                                    &quot;Aladdin.and.the.King.of.Thieves&quot;                                          &quot;Shall.We.Dance&quot;                                                          
+##  [868] &quot;Damsel.in.Distress&quot;                                                       &quot;Crossfire&quot;                                                                &quot;Murder&quot;                                                                  
+##  [871] &quot;Macao&quot;                                                                    &quot;For.the.Moment&quot;                                                           &quot;Willy.Wonka...the.Chocolate.Factory&quot;                                     
+##  [874] &quot;Innocents&quot;                                                                &quot;Sleeper&quot;                                                                  &quot;Bananas&quot;                                                                 
+##  [877] &quot;Fish.Called.Wanda&quot;                                                        &quot;Monty.Python.s.Life.of.Brian&quot;                                             &quot;Victor.Victoria&quot;                                                         
+##  [880] &quot;Candidate&quot;                                                                &quot;Great.Race&quot;                                                               &quot;Bonnie.and.Clyde&quot;                                                        
+##  [883] &quot;Old.Man.and.the.Sea&quot;                                                      &quot;Dial.M.for.Murder&quot;                                                        &quot;Madame.Butterfly&quot;                                                        
+##  [886] &quot;Dirty.Dancing&quot;                                                            &quot;Reservoir.Dogs&quot;                                                           &quot;Platoon&quot;                                                                 
+##  [889] &quot;Weekend.at.Bernie.s&quot;                                                      &quot;Basic.Instinct&quot;                                                           &quot;Doors&quot;                                                                   
+##  [892] &quot;Crying.Game&quot;                                                              &quot;Glengarry.Glen.Ross&quot;                                                      &quot;Sophie.s.Choice&quot;                                                         
+##  [895] &quot;E.T..the.Extra.Terrestrial&quot;                                               &quot;Christmas.Carol&quot;                                                          &quot;Days.of.Thunder&quot;                                                         
+##  [898] &quot;Top.Gun&quot;                                                                  &quot;Rebel.Without.a.Cause&quot;                                                    &quot;Streetcar.Named.Desire&quot;                                                  
+##  [901] &quot;Children.of.the.Corn.IV..The.Gathering&quot;                                   &quot;Microcosmos&quot;                                                              &quot;Palookaville&quot;                                                            
+##  [904] &quot;Associate&quot;                                                                &quot;Funeral&quot;                                                                  &quot;Single.Girl&quot;                                                             
+##  [907] &quot;Eighth.Day&quot;                                                               &quot;Drunks&quot;                                                                   &quot;People.vs..Larry.Flynt&quot;                                                  
+##  [910] &quot;Glory.Daze&quot;                                                               &quot;Perfect.Candidate&quot;                                                        &quot;On.Golden.Pond&quot;                                                          
+##  [913] &quot;Return.of.the.Pink.Panther&quot;                                               &quot;Drop.Dead.Fred&quot;                                                           &quot;Abyss&quot;                                                                   
+##  [916] &quot;Fog&quot;                                                                      &quot;Escape.from.New.York&quot;                                                     &quot;Howling&quot;                                                                 
+##  [919] &quot;Jean.de.Florette&quot;                                                         &quot;Manon.of.the.Spring&quot;                                                      &quot;Talking.About.Sex&quot;                                                       
+##  [922] &quot;Private.Benjamin&quot;                                                         &quot;Monty.Python.and.the.Holy.Grail&quot;                                          &quot;Snowriders&quot;                                                              
+##  [925] &quot;When.We.Were.Kings&quot;                                                       &quot;Wallace...Gromit..The.Wrong.Trousers&quot;                                     &quot;Return.of.Martin.Guerre&quot;                                                 
+##  [928] &quot;He.Walked.by.Night&quot;                                                       &quot;Raw.Deal&quot;                                                                 &quot;T.Men&quot;                                                                   
+##  [931] &quot;Children.Are.Watching.Us&quot;                                                 &quot;Tin.Drum&quot;                                                                 &quot;Ruling.Class&quot;                                                            
+##  [934] &quot;Dear.God&quot;                                                                 &quot;Bad.Moon&quot;                                                                 &quot;American.Dream&quot;                                                          
+##  [937] &quot;Best.of.the.Best.3..No.Turning.Back&quot;                                      &quot;Bob.Roberts&quot;                                                              &quot;Cinema.Paradiso&quot;                                                         
+##  [940] &quot;Cook.the.Thief.His.Wife...Her.Lover&quot;                                      &quot;Delicatessen&quot;                                                             &quot;Double.Life.of.Veronique&quot;                                                
+##  [943] &quot;Enchanted.April&quot;                                                          &quot;Paths.of.Glory&quot;                                                           &quot;Grifters&quot;                                                                
+##  [946] &quot;Hear.My.Song&quot;                                                             &quot;English.Patient&quot;                                                          &quot;Mediterraneo&quot;                                                            
+##  [949] &quot;My.Left.Foot&quot;                                                             &quot;Sex&quot;                                                                      &quot;Passion.Fish&quot;                                                            
+##  [952] &quot;Strictly.Ballroom&quot;                                                        &quot;Thin.Blue.Line&quot;                                                           &quot;Tie.Me.Up..Tie.Me.Down.&quot;                                                 
+##  [955] &quot;Madonna..Truth.or.Dare&quot;                                                   &quot;Paris.Is.Burning&quot;                                                         &quot;One.Flew.Over.the.Cuckoo.s.Nest&quot;                                         
+##  [958] &quot;Cheech.and.Chong.s.Up.in.Smoke&quot;                                           &quot;Star.Wars..Episode.V...The.Empire.Strikes.Back&quot;                           &quot;Princess.Bride&quot;                                                          
+##  [961] &quot;Raiders.of.the.Lost.Ark&quot;                                                  &quot;Brazil&quot;                                                                   &quot;Aliens&quot;                                                                  
+##  [964] &quot;Good&quot;                                                                     &quot;Withnail...I&quot;                                                             &quot;X12.Angry.Men&quot;                                                           
+##  [967] &quot;Lawrence.of.Arabia&quot;                                                       &quot;Clockwork.Orange&quot;                                                         &quot;To.Kill.a.Mockingbird&quot;                                                   
+##  [970] &quot;Apocalypse.Now&quot;                                                           &quot;Once.Upon.a.Time.in.the.West&quot;                                             &quot;Star.Wars..Episode.VI...Return.of.the.Jedi&quot;                              
+##  [973] &quot;Wings.of.Desire&quot;                                                          &quot;Third.Man&quot;                                                                &quot;Goodfellas&quot;                                                              
+##  [976] &quot;Alien&quot;                                                                    &quot;Army.of.Darkness&quot;                                                         &quot;Big.Blue&quot;                                                                
+##  [979] &quot;Ran&quot;                                                                      &quot;Killer&quot;                                                                   &quot;Psycho&quot;                                                                  
+##  [982] &quot;Blues.Brothers&quot;                                                           &quot;Godfather..Part.II&quot;                                                       &quot;Full.Metal.Jacket&quot;                                                       
+##  [985] &quot;Grand.Day.Out.with.Wallace.and.Gromit&quot;                                    &quot;Henry.V&quot;                                                                  &quot;Amadeus&quot;                                                                 
+##  [988] &quot;Quiet.Man&quot;                                                                &quot;Once.Upon.a.Time.in.America&quot;                                              &quot;Raging.Bull&quot;                                                             
+##  [991] &quot;Annie.Hall&quot;                                                               &quot;Right.Stuff&quot;                                                              &quot;Stalker&quot;                                                                 
+##  [994] &quot;Boot&quot;                                                                     &quot;Sting&quot;                                                                    &quot;Harold.and.Maude&quot;                                                        
+##  [997] &quot;Trust&quot;                                                                    &quot;Seventh.Seal&quot;                                                             &quot;Local.Hero&quot;                                                              
+## [1000] &quot;Terminator&quot;                                                              
+##  [ reached getOption(&quot;max.print&quot;) -- omitted 9325 entries ]</code></pre>
+<pre class="r"><code># Recommenadations clean
+reco_out = as(recommendations, &quot;list&quot;)
+reco_out</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;Pulp.Fiction&quot;         &quot;Braveheart&quot;           &quot;Godfather&quot;            &quot;Shawshank.Redemption&quot; &quot;Usual.Suspects&quot;      
+## 
+## [[2]]
+## [1] &quot;Forrest.Gump&quot;         &quot;Pulp.Fiction&quot;         &quot;Shawshank.Redemption&quot; &quot;Braveheart&quot;           &quot;Fugitive&quot;            
+## 
+## [[3]]
+## [1] &quot;Braveheart&quot;           &quot;Silence.of.the.Lambs&quot; &quot;Ghostbusters&quot;         &quot;Fugitive&quot;             &quot;Godfather&quot;           
+## 
+## [[4]]
+## [1] &quot;Pulp.Fiction&quot;         &quot;Schindler.s.List&quot;     &quot;American.Beauty&quot;      &quot;Shawshank.Redemption&quot; &quot;Godfather&quot;           
+## 
+## [[5]]
+## [1] &quot;Forrest.Gump&quot;         &quot;Silence.of.the.Lambs&quot; &quot;Braveheart&quot;           &quot;Contact&quot;              &quot;Legends.of.the.Fall&quot; 
+## 
+## [[6]]
+## [1] &quot;Godfather&quot;               &quot;Fight.Club&quot;              &quot;Casablanca&quot;              &quot;Raiders.of.the.Lost.Ark&quot; &quot;Chinatown&quot;              
+## 
+## [[7]]
+## [1] &quot;Star.Wars..Episode.IV...A.New.Hope&quot;         &quot;Terminator.2..Judgment.Day&quot;                 &quot;Contact&quot;                                    &quot;L.A..Confidential&quot;                          &quot;Star.Wars..Episode.VI...Return.of.the.Jedi&quot;
+## 
+## [[8]]
+## [1] &quot;Forrest.Gump&quot;               &quot;Batman.Forever&quot;             &quot;Speed&quot;                      &quot;Terminator.2..Judgment.Day&quot; &quot;Schindler.s.List&quot;          
+## 
+## [[9]]
+## [1] &quot;Fight.Club&quot;                    &quot;Batman.Begins&quot;                 &quot;Almost.Famous&quot;                 &quot;Muppet.Treasure.Island&quot;        &quot;Star.Trek.IV..The.Voyage.Home&quot;
+## 
+## [[10]]
+## [1] &quot;Shawshank.Redemption&quot; &quot;Braveheart&quot;           &quot;Forrest.Gump&quot;         &quot;Fugitive&quot;             &quot;Usual.Suspects&quot;      
+## 
+## [[11]]
+## [1] &quot;Braveheart&quot;       &quot;Pulp.Fiction&quot;     &quot;Schindler.s.List&quot; &quot;Usual.Suspects&quot;   &quot;Speed&quot;           
+## 
+## [[12]]
+## [1] &quot;Godfather&quot;                          &quot;Star.Wars..Episode.IV...A.New.Hope&quot; &quot;Mr..Holland.s.Opus&quot;                 &quot;Rumble.in.the.Bronx&quot;                &quot;Maverick&quot;                          
+## 
+## [[13]]
+## [1] &quot;Forrest.Gump&quot;         &quot;Shawshank.Redemption&quot; &quot;Pulp.Fiction&quot;         &quot;Braveheart&quot;           &quot;Silence.of.the.Lambs&quot;
+## 
+## [[14]]
+## [1] &quot;American.History.X&quot;                    &quot;Inception&quot;                             &quot;The.Hunger.Games..Mockingjay...Part.1&quot; &quot;Dark.City&quot;                             &quot;Mad.Max..Fury.Road&quot;                   
+## 
+## [[15]]
+## [1] &quot;Silence.of.the.Lambs&quot;               &quot;Fugitive&quot;                           &quot;Star.Wars..Episode.IV...A.New.Hope&quot; &quot;Shawshank.Redemption&quot;               &quot;Pulp.Fiction&quot;                      
+## 
+## [[16]]
+## [1] &quot;Star.Wars..Episode.IV...A.New.Hope&quot; &quot;Fargo&quot;                              &quot;Trainspotting&quot;                      &quot;Big.Lebowski&quot;                       &quot;Godfather&quot;                         
+## 
+## [[17]]
+## [1] &quot;Silence.of.the.Lambs&quot; &quot;Shawshank.Redemption&quot; &quot;Usual.Suspects&quot;       &quot;Pulp.Fiction&quot;         &quot;Fargo&quot;               
+## 
+## [[18]]
+## [1] &quot;Shawshank.Redemption&quot;            &quot;One.Flew.Over.the.Cuckoo.s.Nest&quot; &quot;Amelie&quot;                          &quot;Dead.Poets.Society&quot;              &quot;Inception&quot;                      
+## 
+## [[19]]
+## [1] &quot;Fugitive&quot;          &quot;Sixth.Sense&quot;       &quot;Gladiator&quot;         &quot;Jerry.Maguire&quot;     &quot;What.Lies.Beneath&quot;
+## 
+## [[20]]
+## [1] &quot;Fugitive&quot;             &quot;Braveheart&quot;           &quot;Silence.of.the.Lambs&quot; &quot;Shrek&quot;                &quot;Hunt.for.Red.October&quot;
+## 
+## [[21]]
+## [1] &quot;Godfather&quot;           &quot;Beloved&quot;             &quot;Apollo.13&quot;           &quot;Slumdog.Millionaire&quot; &quot;Lone.Star&quot;          
+## 
+## [[22]]
+## [1] &quot;Big.Lebowski&quot;                          &quot;Austin.Powers..The.Spy.Who.Shagged.Me&quot; &quot;Forrest.Gump&quot;                          &quot;Good&quot;                                  &quot;Annie.Hall&quot;                           
+## 
+## [[23]]
+## [1] &quot;Schindler.s.List&quot;     &quot;Shawshank.Redemption&quot; &quot;Usual.Suspects&quot;       &quot;Braveheart&quot;           &quot;Pulp.Fiction&quot;        
+## 
+## [[24]]
+## [1] &quot;The.Imitation.Game&quot; &quot;Beautiful.Mind&quot;     &quot;Life.Is.Beautiful&quot;  &quot;King.s.Speech&quot;      &quot;Help&quot;              
+## 
+## [[25]]
+## [1] &quot;Star.Wars..Episode.VI...Return.of.the.Jedi&quot; &quot;Toy.Story&quot;                                  &quot;Star.Wars..Episode.IV...A.New.Hope&quot;         &quot;Liar.Liar&quot;                                  &quot;Shawshank.Redemption&quot;                      
+## 
+## [[26]]
+## [1] &quot;Fight.Club&quot;              &quot;L.A..Confidential&quot;       &quot;Sixth.Sense&quot;             &quot;Raiders.of.the.Lost.Ark&quot; &quot;Titanic&quot;                
+## 
+## [[27]]
+## [1] &quot;Pulp.Fiction&quot;               &quot;Silence.of.the.Lambs&quot;       &quot;Braveheart&quot;                 &quot;Terminator.2..Judgment.Day&quot; &quot;Fugitive&quot;                  
+## 
+## [[28]]
+## [1] &quot;Snow.White.and.the.Seven.Dwarfs&quot;                                      &quot;Dr..Strangelove.or..How.I.Learned.to.Stop.Worrying.and.Love.the.Bomb&quot; &quot;Goodfellas&quot;                                                          
+## [4] &quot;Gone.with.the.Wind&quot;                                                   &quot;Breakfast.Club&quot;                                                      
+## 
+## [[29]]
+## [1] &quot;Shawshank.Redemption&quot; &quot;Forrest.Gump&quot;         &quot;Matrix&quot;               &quot;Amelie&quot;               &quot;Pulp.Fiction&quot;        
+## 
+## [[30]]
+## [1] &quot;Titanic&quot;                       &quot;Star.Trek.IV..The.Voyage.Home&quot; &quot;Natural.Born.Killers&quot;          &quot;Braveheart&quot;                    &quot;What.Lies.Beneath&quot;            
+## 
+## [[31]]
+## [1] &quot;Silence.of.the.Lambs&quot; &quot;Pulp.Fiction&quot;         &quot;L.A..Confidential&quot;    &quot;Smoke&quot;                &quot;Contact&quot;             
+## 
+## [[32]]
+## [1] &quot;Fargo&quot;                    &quot;Usual.Suspects&quot;           &quot;Ferris.Bueller.s.Day.Off&quot; &quot;Big.Lebowski&quot;             &quot;Good&quot;                    
+## 
+## [[33]]
+## [1] &quot;Forrest.Gump&quot;                       &quot;Shawshank.Redemption&quot;               &quot;Usual.Suspects&quot;                     &quot;Star.Wars..Episode.IV...A.New.Hope&quot; &quot;Back.to.the.Future&quot;                
+## 
+## [[34]]
+## [1] &quot;Fight.Club&quot;                  &quot;Pulp.Fiction&quot;                &quot;Usual.Suspects&quot;              &quot;Scott.Pilgrim.vs..the.World&quot; &quot;Titanic&quot;                    
+## 
+## [[35]]
+## [1] &quot;Contact&quot;                                       &quot;Lord.of.the.Rings..The.Fellowship.of.the.Ring&quot; &quot;Eve.s.Bayou&quot;                                   &quot;Shrek&quot;                                         &quot;Mortal.Kombat..Annihilation&quot;                  
+## 
+## [[36]]
+## [1] &quot;A.I..Artificial.Intelligence&quot; &quot;Beloved&quot;                      &quot;Witness&quot;                      &quot;Serial.Mom&quot;                   &quot;Scarface&quot;                    
+## 
+## [[37]]
+## [1] &quot;Braveheart&quot;       &quot;Usual.Suspects&quot;   &quot;Forrest.Gump&quot;     &quot;Fugitive&quot;         &quot;Schindler.s.List&quot;
+## 
+## [[38]]
+## [1] &quot;Fugitive&quot;                                      &quot;Terminator.2..Judgment.Day&quot;                    &quot;Star.Wars..Episode.IV...A.New.Hope&quot;            &quot;Lord.of.the.Rings..The.Fellowship.of.the.Ring&quot; &quot;Lord.of.the.Rings..The.Two.Towers&quot;            
+## 
+## [[39]]
+## [1] &quot;Shawshank.Redemption&quot;            &quot;Sweet.Hereafter&quot;                 &quot;L.A..Confidential&quot;               &quot;One.Flew.Over.the.Cuckoo.s.Nest&quot; &quot;Fried.Green.Tomatoes&quot;           
+## 
+## [[40]]
+## [1] &quot;Shawshank.Redemption&quot;               &quot;Usual.Suspects&quot;                     &quot;Terminator.2..Judgment.Day&quot;         &quot;Pulp.Fiction&quot;                       &quot;Star.Wars..Episode.IV...A.New.Hope&quot;
+## 
+## [[41]]
+## [1] &quot;Shawshank.Redemption&quot; &quot;Silence.of.the.Lambs&quot; &quot;Pulp.Fiction&quot;         &quot;Apollo.13&quot;            &quot;Braveheart&quot;          
+## 
+## [[42]]
+## [1] &quot;Forrest.Gump&quot;                    &quot;One.Flew.Over.the.Cuckoo.s.Nest&quot; &quot;Fight.Club&quot;                      &quot;A.I..Artificial.Intelligence&quot;    &quot;Big.Lebowski&quot;                   
+## 
+## [[43]]
+## [1] &quot;Star.Wars..Episode.VI...Return.of.the.Jedi&quot; &quot;Godfather&quot;                                  &quot;Heat&quot;                                       &quot;Fugitive&quot;                                   &quot;Fargo&quot;                                     
+## 
+## [[44]]
+## [1] &quot;Fugitive&quot;                      &quot;Apollo.13&quot;                     &quot;Mortal.Kombat..Annihilation&quot;   &quot;Star.Trek.IV..The.Voyage.Home&quot; &quot;Contact&quot;                      
+## 
+## [[45]]
+## [1] &quot;Ghostbusters&quot; &quot;Casino&quot;       &quot;Matrix&quot;       &quot;Shrek&quot;        &quot;Rookie&quot;      
+## 
+## [[46]]
+## [1] &quot;Raiders.of.the.Lost.Ark&quot;                       &quot;Fight.Club&quot;                                    &quot;Usual.Suspects&quot;                                &quot;Amadeus&quot;                                       &quot;Lord.of.the.Rings..The.Fellowship.of.the.Ring&quot;
+## 
+## [[47]]
+## [1] &quot;Braveheart&quot;           &quot;Silence.of.the.Lambs&quot; &quot;Dances.with.Wolves&quot;   &quot;Seven&quot;                &quot;Fugitive&quot;            
+## 
+## [[48]]
+## [1] &quot;Annie.Hall&quot;           &quot;Silence.of.the.Lambs&quot; &quot;Mummy.Returns&quot;        &quot;Shawshank.Redemption&quot; &quot;Casper&quot;              
+## 
+## [[49]]
+## [1] &quot;Silence.of.the.Lambs&quot; &quot;Usual.Suspects&quot;       &quot;Pulp.Fiction&quot;         &quot;Shawshank.Redemption&quot; &quot;Forrest.Gump&quot;        
+## 
+## [[50]]
+## [1] &quot;Schindler.s.List&quot;        &quot;Shawshank.Redemption&quot;    &quot;Gladiator&quot;               &quot;Aliens&quot;                  &quot;Raiders.of.the.Lost.Ark&quot;
+## 
+## [[51]]
+## [1] &quot;Braveheart&quot;              &quot;Shawshank.Redemption&quot;    &quot;Fugitive&quot;                &quot;Raiders.of.the.Lost.Ark&quot; &quot;Silence.of.the.Lambs&quot;   
+## 
+## [[52]]
+## [1] &quot;True.Romance&quot;                  &quot;Down.Periscope&quot;                &quot;Pulp.Fiction&quot;                  &quot;Star.Trek.IV..The.Voyage.Home&quot; &quot;Slumdog.Millionaire&quot;          
+## 
+## [[53]]
+## [1] &quot;Godfather&quot;               &quot;Raiders.of.the.Lost.Ark&quot; &quot;Fight.Club&quot;              &quot;Twelve.Monkeys&quot;          &quot;Fargo&quot;                  
+## 
+## [[54]]
+## [1] &quot;Shawshank.Redemption&quot;    &quot;Raiders.of.the.Lost.Ark&quot; &quot;Aliens&quot;                  &quot;Usual.Suspects&quot;          &quot;Die.Hard&quot;               
+## 
+## [[55]]
+## [1] &quot;Pulp.Fiction&quot;         &quot;Shawshank.Redemption&quot; &quot;Braveheart&quot;           &quot;Silence.of.the.Lambs&quot; &quot;Forrest.Gump&quot;        
+## 
+## [[56]]
+## [1] &quot;Shawshank.Redemption&quot; &quot;Pulp.Fiction&quot;         &quot;Braveheart&quot;           &quot;Usual.Suspects&quot;       &quot;Forrest.Gump&quot;        
+## 
+## [[57]]
+## [1] &quot;Contact&quot;                     &quot;Primal.Fear&quot;                 &quot;Time.to.Kill&quot;                &quot;Fargo&quot;                       &quot;Mortal.Kombat..Annihilation&quot;
+## 
+## [[58]]
+## [1] &quot;Shawshank.Redemption&quot; &quot;Braveheart&quot;           &quot;Dances.with.Wolves&quot;   &quot;Forrest.Gump&quot;         &quot;Crimson.Tide&quot;        
+## 
+## [[59]]
+## [1] &quot;Psycho&quot;                                &quot;O.Brother&quot;                             &quot;The.Hunger.Games..Mockingjay...Part.1&quot; &quot;Spirited.Away&quot;                         &quot;Usual.Suspects&quot;                       
+## 
+## [[60]]
+## [1] &quot;L.A..Confidential&quot;      &quot;Good&quot;                   &quot;For.a.Few.Dollars.More&quot; &quot;Love.and.Death&quot;         &quot;Annie.Hall&quot;            
+## 
+## [[61]]
+## [1] &quot;Shawshank.Redemption&quot; &quot;Schindler.s.List&quot;     &quot;Pulp.Fiction&quot;         &quot;Braveheart&quot;           &quot;Usual.Suspects&quot;      
+## 
+## [[62]]
+## [1] &quot;Star.Wars..Episode.IV...A.New.Hope&quot;         &quot;Star.Wars..Episode.VI...Return.of.the.Jedi&quot; &quot;Jerry.Maguire&quot;                              &quot;Fargo&quot;                                      &quot;Rumble.in.the.Bronx&quot;                       
+## 
+## [[63]]
+## [1] &quot;Fugitive&quot;             &quot;Silence.of.the.Lambs&quot; &quot;Braveheart&quot;           &quot;Dances.with.Wolves&quot;   &quot;Forrest.Gump&quot;        
+## 
+## [[64]]
+## [1] &quot;Godfather&quot;            &quot;Fight.Club&quot;           &quot;L.A..Confidential&quot;    &quot;Shawshank.Redemption&quot; &quot;American.Beauty&quot;     
+## 
+## [[65]]
+## [1] &quot;Shawshank.Redemption&quot; &quot;Fargo&quot;                &quot;Forrest.Gump&quot;         &quot;Sixth.Sense&quot;          &quot;Silence.of.the.Lambs&quot;
+## 
+## [[66]]
+## [1] &quot;Shawshank.Redemption&quot;                          &quot;Godfather&quot;                                     &quot;Raiders.of.the.Lost.Ark&quot;                       &quot;Sixth.Sense&quot;                                   &quot;Lord.of.the.Rings..The.Fellowship.of.the.Ring&quot;
+## 
+## [[67]]
+## [1] &quot;Silence.of.the.Lambs&quot; &quot;Fargo&quot;                &quot;Braveheart&quot;           &quot;Apollo.13&quot;            &quot;Birdcage&quot;</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

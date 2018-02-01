@@ -1,0 +1,7 @@
+name: "Unsupervised learning"
+navbar:
+  title: "Unsupervised learning"
+  left:
+    - text: "Unsupervised learning"
+      href: index.html
+
